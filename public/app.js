@@ -452,9 +452,11 @@
 
     let actionsHTML = '';
     if (role === 'assistant') {
+      const shareBtnHTML = navigator.share ? `<button class="share-btn msg-action-btn" title="Share">↗️ Share</button>` : '';
       actionsHTML = `<div class="msg-actions">
         <button class="msg-action-btn read-btn" title="Read aloud">🔊 Read</button>
         <button class="msg-action-btn copy-btn" title="Copy text">📋 Copy</button>
+        ${shareBtnHTML}
       </div>`;
     }
 
@@ -481,9 +483,27 @@
         });
       });
     }
+    const shareBtn = div.querySelector('.share-btn');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', async () => {
+        try {
+          await navigator.share({
+            title: 'ElectIQ Election Fact',
+            text: content.replace(/\\*\\*/g, '').substring(0, 150) + '... (Read more on ElectIQ)',
+            url: window.location.href
+          });
+        } catch (e) { console.log('Share canceled or failed'); }
+      });
+    }
 
     messagesBox.appendChild(div);
     scrollToBottom();
+  }
+
+  // ── Offline / Online Detection ──────────────────────────────────
+  window.addEventListener('online', () => document.getElementById('offlineBanner')?.classList.remove('show'));
+  window.addEventListener('offline', () => document.getElementById('offlineBanner')?.classList.add('show'));
+  if (!navigator.onLine) document.getElementById('offlineBanner')?.classList.add('show');
     return div;
   }
 
