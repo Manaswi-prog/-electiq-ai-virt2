@@ -143,7 +143,7 @@ app.post('/api/chat', async (req, res) => {
 
     // All models failed — return graceful message
     return res.json({
-      reply: '⏳ **I\'m a bit busy right now!** Too many people are asking me questions.\n\n**Please wait 30-60 seconds** and try again. 🙏\n\nIn the meantime, here are quick facts:\n\n1️⃣ 🗳️ **Voting** is your fundamental right\n2️⃣ 📋 **Register** before the deadline\n3️⃣ 📅 **Election Day** — don\'t miss it!\n4️⃣ 🔒 Your vote is **secret and safe**\n5️⃣ 🌍 **Every country** has its own election system'
+      reply: '⏳ **I am a bit overwhelmed with questions right now!** Please wait 30 seconds and try again. 🙏\n\nWhile you wait, here is some quick election knowledge:\n\n1️⃣ **Power of the Vote:** Voting gives citizens the direct power to choose leaders and shape the future.\n2️⃣ **Registration:** You must be registered before the deadline to participate.\n3️⃣ **Secrecy:** Your vote is completely confidential. No one can find out who you voted for.\n4️⃣ **Voting Systems Differ Globally:**\n   🇮🇳 **India** uses EVMs (Electronic Voting Machines) for fast, secure counting.\n   🇺🇸 **USA** primarily uses paper ballots and the Electoral College system.\n   🇬🇧 **UK** uses a First-Past-The-Post system with paper ballots.\n\nI will be ready to answer your specific question in just a moment! 🤖'
     });
   } catch (err) {
     console.error('Chat error:', err.message);
