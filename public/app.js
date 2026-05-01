@@ -53,6 +53,60 @@
     ar: 'مرحباً! أنا <strong>ElectIQ</strong> 👋<br/>اسألني أي شيء عن الانتخابات!<br/>اضغط على 🎤 للتحدث!',
   };
 
+  // Full UI Translations
+  const uiTranslations = {
+    en: {
+      newChat: "New Chat", voiceAsst: "🔊 Voice Assistant", autoRead: "Auto-read answers",
+      speed: "Speed", quickTopics: "⚡ Quick Topics",
+      poweredBy: "Powered by Gemini AI", footerNote: "Non-partisan • For Everyone • All Languages",
+      topTitle: "Election Process Education",
+      welcomeGuide: "Your <span class='grad-text'>Election Guide</span>",
+      welcomeSub: "Tap a topic below or ask me anything 👇",
+      feat1: "Voice Input", feat2: "Read Aloud", feat3: "21 Languages", feat4: "Mobile Ready",
+      placeholder: "Type or tap 🎤 to ask...",
+      hint: "ElectIQ is educational only • Always verify with official sources"
+    },
+    hi: {
+      newChat: "नया चैट", voiceAsst: "🔊 वॉयस असिस्टेंट", autoRead: "स्वचालित पढ़ें",
+      speed: "गति", quickTopics: "⚡ त्वरित विषय",
+      poweredBy: "Gemini AI द्वारा संचालित", footerNote: "निष्पक्ष • सभी के लिए • सभी भाषाएं",
+      topTitle: "चुनाव प्रक्रिया शिक्षा",
+      welcomeGuide: "आपका <span class='grad-text'>चुनाव मार्गदर्शक</span>",
+      welcomeSub: "नीचे दिए गए विषय पर टैप करें या कुछ भी पूछें 👇",
+      feat1: "वॉयस इनपुट", feat2: "जोर से पढ़ें", feat3: "21 भाषाएं", feat4: "मोबाइल रेडी",
+      placeholder: "पूछने के लिए टाइप करें या 🎤 टैप करें...",
+      hint: "ElectIQ केवल शैक्षिक है • हमेशा आधिकारिक स्रोतों से सत्यापित करें"
+    }
+  };
+
+  function updateUILocale() {
+    const t = uiTranslations[currentLang] || uiTranslations.en;
+    
+    $('#newChatBtn').innerHTML = `<span>＋</span> ${t.newChat}`;
+    document.querySelectorAll('.section-label')[1].textContent = t.voiceAsst;
+    document.querySelectorAll('.toggle-row span')[0].textContent = t.autoRead;
+    document.querySelectorAll('.toggle-row span')[1].textContent = t.speed;
+    document.querySelectorAll('.section-label')[2].textContent = t.quickTopics;
+    
+    $('.footer-badge').innerHTML = `<span class="badge-dot"></span> ${t.poweredBy}`;
+    $('.footer-note').textContent = t.footerNote;
+    $('.topbar-center h2').textContent = t.topTitle;
+    $('.welcome-title').innerHTML = t.welcomeGuide;
+    $('.welcome-sub').textContent = t.welcomeSub;
+    
+    const feats = document.querySelectorAll('.feat span:nth-child(2)');
+    if (feats.length === 4) {
+      feats[0].textContent = t.feat1; feats[1].textContent = t.feat2;
+      feats[2].textContent = t.feat3; feats[3].textContent = t.feat4;
+    }
+    
+    $('#msgInput').placeholder = t.placeholder;
+    $('.input-hint').textContent = t.hint;
+
+    updateRobotGreeting();
+    loadTopics(); // Re-render topics with new language
+  }
+
   // ── Theme ──────────────────────────────────────────────────────
   const savedTheme = localStorage.getItem('electiq-theme') || 'dark';
   if (savedTheme === 'light') document.documentElement.setAttribute('data-theme', 'light');
@@ -74,7 +128,7 @@
   langSelect.addEventListener('change', () => {
     currentLang = langSelect.value;
     localStorage.setItem('electiq-lang', currentLang);
-    updateRobotGreeting();
+    updateUILocale();
   });
 
   function updateRobotGreeting() {
@@ -141,11 +195,13 @@
   }
 
   function renderSidebarTopics(topics) {
-    topicsList.innerHTML = topics.map(t =>
-      `<button class="topic-btn" data-prompt="${esc(t.prompt)}">
-        <span>${t.icon}</span><span>${t.title}</span>
-      </button>`
-    ).join('');
+    topicsList.innerHTML = topics.map(t => {
+      const title = currentLang === 'hi' && t.titleHi ? t.titleHi : t.title;
+      const prompt = currentLang === 'hi' && t.promptHi ? t.promptHi : t.prompt;
+      return `<button class="topic-btn" data-prompt="${esc(prompt)}">
+        <span>${t.icon}</span><span>${title}</span>
+      </button>`;
+    }).join('');
     topicsList.querySelectorAll('.topic-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         sendMessage(btn.dataset.prompt);
@@ -155,13 +211,15 @@
   }
 
   function renderWelcomeCards(topics) {
-    welcomeCards.innerHTML = topics.map(t =>
-      `<div class="topic-card" data-prompt="${esc(t.prompt)}" style="--card-c:${t.color}">
+    welcomeCards.innerHTML = topics.map(t => {
+      const title = currentLang === 'hi' && t.titleHi ? t.titleHi : t.title;
+      const prompt = currentLang === 'hi' && t.promptHi ? t.promptHi : t.prompt;
+      return `<div class="topic-card" data-prompt="${esc(prompt)}" style="--card-c:${t.color}">
         <span class="card-emoji">${t.emoji}</span>
-        <div class="card-title">${t.title}</div>
-        <div class="card-sub">${t.prompt.split('.')[0]}</div>
-      </div>`
-    ).join('');
+        <div class="card-title">${title}</div>
+        <div class="card-sub">${prompt.split('.')[0]}</div>
+      </div>`;
+    }).join('');
     welcomeCards.querySelectorAll('.topic-card').forEach(card => {
       card.style.setProperty('--before-bg', card.style.getPropertyValue('--card-c'));
       card.addEventListener('click', () => sendMessage(card.dataset.prompt));
