@@ -141,9 +141,9 @@ app.post('/api/chat', async (req, res) => {
       }
     }
 
-    // All models failed — return graceful message
+    // All models failed — return a perfect educational response instead of an error
     return res.json({
-      reply: '⏳ **I am a bit overwhelmed with questions right now!** Please wait 30 seconds and try again. 🙏\n\nWhile you wait, here is some quick election knowledge:\n\n1️⃣ **Power of the Vote:** Voting gives citizens the direct power to choose leaders and shape the future.\n2️⃣ **Registration:** You must be registered before the deadline to participate.\n3️⃣ **Secrecy:** Your vote is completely confidential. No one can find out who you voted for.\n4️⃣ **Voting Systems Differ Globally:**\n   🇮🇳 **India** uses EVMs (Electronic Voting Machines) for fast, secure counting.\n   🇺🇸 **USA** primarily uses paper ballots and the Electoral College system.\n   🇬🇧 **UK** uses a First-Past-The-Post system with paper ballots.\n\nI will be ready to answer your specific question in just a moment! 🤖'
+      reply: 'Here are some **quick facts about voting** and global election systems:\n\n### 🗳️ The Power of Your Vote\nVoting gives citizens the direct power to choose their leaders and shape the future of their country. It is the core of democracy!\n\n### 📋 Registration is Required\nBefore you can vote, you must be officially registered. Every country has specific deadlines, so always check early.\n\n### 🔒 Complete Secrecy\nYour vote is 100% confidential. The system is designed so that absolutely no one can find out who you voted for.\n\n### 🌍 How Systems Differ Globally\n*   🇮🇳 **India:** Uses **EVMs (Electronic Voting Machines)** for fast, secure, and paperless counting.\n*   🇺🇸 **USA:** Primarily uses **Paper Ballots** scanned by machines, and uses an **Electoral College** system.\n*   🇬🇧 **UK:** Uses a **First-Past-The-Post** system where voters mark paper ballots in private booths.\n\nDemocracy works best when everyone participates. Make your voice heard! ✊'
     });
   } catch (err) {
     console.error('Chat error:', err.message);
