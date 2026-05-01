@@ -109,60 +109,67 @@ body{font-family:var(--font);background:var(--bg-1);color:var(--t1);
 /* ── Chat Area ────────────────────────────────────────────── */
 .chat-area{flex:1;overflow-y:auto;scroll-behavior:smooth}
 
-/* ── Robot Mascot ─────────────────────────────────────────── */
-.robot-container{position:relative;width:140px;height:180px;margin:0 auto 10px}
-.robot{position:relative;animation:robotFloat 3s ease-in-out infinite}
-@keyframes robotFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+/* ── Robot Mascot (Sleek White Design) ───────────────────── */
+.robot-container{position:relative;width:180px;height:180px;margin:0 auto 10px}
+.robot{position:relative;animation:robotFloat 3s ease-in-out infinite;z-index:2}
+@keyframes robotFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 
-.robot-antenna{position:absolute;top:0;left:50%;transform:translateX(-50%);text-align:center;z-index:2}
-.antenna-ball{width:12px;height:12px;background:var(--a2);border-radius:50%;margin:0 auto;
-  box-shadow:0 0 12px var(--a2);animation:glow 2s ease-in-out infinite}
-@keyframes glow{0%,100%{box-shadow:0 0 8px var(--a2)}50%{box-shadow:0 0 20px var(--a2),0 0 40px rgba(0,206,201,.3)}}
-.antenna-line{width:3px;height:18px;background:linear-gradient(var(--a2),var(--a1));margin:0 auto;border-radius:2px}
+/* Hide old elements not needed in the new design */
+.robot-antenna, .robot-mouth, .robot-cheek {display:none!important}
 
-.robot-head{width:100px;height:72px;background:linear-gradient(135deg,#4834d4,#6c5ce7);
-  border-radius:20px 20px 16px 16px;margin:0 auto;position:relative;
-  border:2px solid rgba(255,255,255,.15);box-shadow:0 8px 30px rgba(108,92,231,.3),inset 0 -4px 10px rgba(0,0,0,.2)}
-.robot-eye{position:absolute;top:18px;width:22px;height:26px;background:#fff;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 4px rgba(0,0,0,.1)}
-.robot-eye-l{left:18px}
-.robot-eye-r{right:18px}
-.pupil{width:10px;height:12px;background:#1a1a3a;border-radius:50%;position:relative;
-  animation:look 4s ease-in-out infinite}
-.pupil::after{content:'';position:absolute;width:4px;height:4px;background:#fff;border-radius:50%;top:2px;right:1px}
+/* Binocular style head */
+.robot-head{width:140px;height:50px;background:linear-gradient(180deg,#ffffff,#e0e0e0);
+  border-radius:30px;margin:25px auto 0;position:relative;
+  border:1px solid #ddd;box-shadow:0 12px 25px rgba(0,0,0,.15),inset 0 -4px 10px rgba(0,0,0,.08);
+  display:flex;justify-content:space-between;align-items:center;padding:0 6px;z-index:3}
+  
+/* Goggle Eyes */
+.robot-eye{width:58px;height:58px;background:#222;border-radius:50%;
+  border:4px solid #fff;box-shadow:0 6px 15px rgba(0,0,0,.25), inset 0 0 10px #000;
+  display:flex;align-items:center;justify-content:center;position:relative;top:0}
+.robot-eye::before{content:'';position:absolute;width:42px;height:42px;border-radius:50%;background:#111;border:2px solid #444}
+
+/* Glowing Cyan Lenses */
+.pupil{width:22px;height:22px;background:#00d2ff;border-radius:50%;position:relative;
+  box-shadow:0 0 15px #00d2ff,inset 0 0 6px rgba(255,255,255,.8);animation:look 4s ease-in-out infinite}
+.pupil::after{content:'';position:absolute;width:8px;height:8px;background:#fff;border-radius:50%;top:3px;right:3px;filter:blur(1px)}
 @keyframes look{0%,100%{transform:translate(0,0)}25%{transform:translate(3px,-1px)}50%{transform:translate(-2px,1px)}75%{transform:translate(2px,2px)}}
 
-.robot-mouth{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
-  width:24px;height:8px;background:#2d1b69;border-radius:0 0 12px 12px;
-  transition:all .3s;overflow:hidden}
-.robot.talking .robot-mouth{height:14px;width:20px;border-radius:10px;animation:talk .3s ease-in-out infinite alternate}
-@keyframes talk{0%{height:10px;width:18px}100%{height:16px;width:22px}}
-.robot.thinking .robot-mouth{width:10px;height:10px;border-radius:50%}
+/* White Body with dark chest vent */
+.robot-body{width:65px;height:65px;background:linear-gradient(180deg,#ffffff,#d5d5d5);
+  border-radius:20px 20px 24px 24px;margin:0 auto;position:relative;
+  border:1px solid #ddd;box-shadow:0 8px 20px rgba(0,0,0,.12);
+  display:flex;flex-direction:column;align-items:center;padding-top:14px;z-index:2}
+  
+/* Mechanical Neck */
+.robot-body::before{content:'';position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+  width:20px;height:14px;background:#1a1a1a;border-radius:2px;z-index:-1;
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 2px,#333 2px,#333 4px)}
 
-.robot-cheek{position:absolute;bottom:16px;width:14px;height:8px;background:rgba(253,121,168,.3);border-radius:50%;opacity:0;
-  transition:opacity .3s}
-.robot-cheek-l{left:10px}
-.robot-cheek-r{right:10px}
-.robot.happy .robot-cheek{opacity:1}
-.robot.happy .robot-mouth{border-radius:0 0 20px 20px;height:10px;width:28px}
+/* Chest Screen / Vent */
+.robot-screen{width:34px;height:24px;background:#111;border-radius:4px;
+  border:2px solid #333;display:flex;align-items:center;justify-content:center;
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 3px,#1a1a1a 3px,#1a1a1a 4px)}
+.robot-heart{font-size:12px;color:#00d2ff;animation:pulse 2s ease-in-out infinite;text-shadow:0 0 8px #00d2ff}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
 
-.robot-body{width:80px;height:50px;background:linear-gradient(135deg,#4834d4,#6c5ce7);
-  border-radius:12px 12px 16px 16px;margin:-4px auto 0;position:relative;
-  border:2px solid rgba(255,255,255,.1);box-shadow:0 6px 20px rgba(108,92,231,.25)}
-.robot-screen{position:absolute;top:8px;left:50%;transform:translateX(-50%);
-  width:40px;height:28px;background:rgba(0,0,0,.3);border-radius:6px;
-  display:flex;align-items:center;justify-content:center;overflow:hidden}
-.robot-heart{font-size:16px;animation:pulse 2s ease-in-out infinite}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
-.robot-arm{position:absolute;top:8px;width:14px;height:36px;background:linear-gradient(#5f4bd4,#6c5ce7);border-radius:8px;
-  transform-origin:top center;border:1px solid rgba(255,255,255,.1)}
-.robot-arm-l{left:-18px;animation:wave 3s ease-in-out infinite}
-.robot-arm-r{right:-18px;animation:wave 3s ease-in-out infinite .5s}
-@keyframes wave{0%,100%{transform:rotate(0deg)}25%{transform:rotate(-10deg)}75%{transform:rotate(10deg)}}
+/* White/Black mechanical arms */
+.robot-arm{position:absolute;top:15px;width:12px;height:32px;background:linear-gradient(90deg,#fff,#ccc);
+  border-radius:6px;border:1px solid #bbb;transform-origin:top center;z-index:-1}
+.robot-arm::after{content:'';position:absolute;bottom:-4px;left:-1px;width:12px;height:10px;background:#222;border-radius:3px}
+.robot-arm-l{left:-4px;animation:wave 3s ease-in-out infinite}
+.robot-arm-r{right:-4px;animation:wave 3s ease-in-out infinite .5s}
+@keyframes wave{0%,100%{transform:rotate(10deg)}25%{transform:rotate(-20deg)}75%{transform:rotate(30deg)}}
 
-.robot-shadow{width:60px;height:10px;background:rgba(108,92,231,.15);border-radius:50%;
-  margin:8px auto 0;filter:blur(4px);animation:shadowPulse 3s ease-in-out infinite}
+.robot-shadow{width:80px;height:12px;background:rgba(0,0,0,.15);border-radius:50%;
+  margin:4px auto 0;filter:blur(4px);animation:shadowPulse 3s ease-in-out infinite}
 @keyframes shadowPulse{0%,100%{transform:scaleX(1);opacity:.4}50%{transform:scaleX(.8);opacity:.2}}
+
+/* State Overrides (Re-mapped to Eyes since mouth is hidden) */
+.robot.talking .pupil{animation:talkGlow .3s ease-in-out infinite alternate}
+@keyframes talkGlow{0%{box-shadow:0 0 10px #00d2ff,inset 0 0 6px rgba(255,255,255,.8)}100%{box-shadow:0 0 30px #00d2ff,inset 0 0 10px #fff;transform:scale(1.1)}}
+.robot.thinking .pupil{height:8px;border-radius:4px;transform:translateY(4px)}
+.robot.happy .pupil{border-radius:20px 20px 6px 6px}
 
 /* ── Speech Bubble ────────────────────────────────────────── */
 .speech-bubble{background:var(--bg-c);border:1px solid var(--bdr);border-radius:var(--rr);
