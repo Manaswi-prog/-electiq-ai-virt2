@@ -1,4 +1,4 @@
-const CACHE_NAME = 'electiq-v1';
+const CACHE_NAME = 'electiq-v2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -15,7 +15,13 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then(keys => Promise.all(
+      keys.map(key => {
+        if (key !== CACHE_NAME) return caches.delete(key);
+      })
+    )).then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener('fetch', event => {
