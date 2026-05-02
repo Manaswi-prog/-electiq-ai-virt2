@@ -83,10 +83,12 @@
     const t = uiTranslations[currentLang] || uiTranslations.en;
     
     $('#newChatBtn').innerHTML = `<span>＋</span> ${t.newChat}`;
-    document.querySelectorAll('.section-label')[1].textContent = t.voiceAsst;
-    document.querySelectorAll('.toggle-row span')[0].textContent = t.autoRead;
-    document.querySelectorAll('.toggle-row span')[1].textContent = t.speed;
-    document.querySelectorAll('.section-label')[2].textContent = t.quickTopics;
+    const sectionLabels = document.querySelectorAll('.section-label');
+    if (sectionLabels[1]) sectionLabels[1].textContent = t.voiceAsst;
+    const toggleSpans = document.querySelectorAll('.toggle-row span');
+    if (toggleSpans[0]) toggleSpans[0].textContent = t.autoRead;
+    if (toggleSpans[1]) toggleSpans[1].textContent = t.speed;
+    if (sectionLabels[2]) sectionLabels[2].textContent = t.quickTopics;
     
     $('.footer-badge').innerHTML = `<span class="badge-dot"></span> ${t.poweredBy}`;
     $('.footer-note').textContent = t.footerNote;
@@ -489,7 +491,7 @@
         try {
           await navigator.share({
             title: 'ElectIQ Election Fact',
-            text: content.replace(/\\*\\*/g, '').substring(0, 150) + '... (Read more on ElectIQ)',
+            text: content.replace(/\*\*/g, '').substring(0, 150) + '... (Read more on ElectIQ)',
             url: window.location.href
           });
         } catch (e) { console.log('Share canceled or failed'); }
@@ -498,12 +500,6 @@
 
     messagesBox.appendChild(div);
     scrollToBottom();
-  }
-
-  // ── Offline / Online Detection ──────────────────────────────────
-  window.addEventListener('online', () => document.getElementById('offlineBanner')?.classList.remove('show'));
-  window.addEventListener('offline', () => document.getElementById('offlineBanner')?.classList.add('show'));
-  if (!navigator.onLine) document.getElementById('offlineBanner')?.classList.add('show');
     return div;
   }
 
@@ -522,6 +518,11 @@
   function scrollToBottom() {
     requestAnimationFrame(() => { chatArea.scrollTop = chatArea.scrollHeight; });
   }
+
+  // ── Offline / Online Detection ──────────────────────────────────
+  window.addEventListener('online', () => document.getElementById('offlineBanner')?.classList.remove('show'));
+  window.addEventListener('offline', () => document.getElementById('offlineBanner')?.classList.add('show'));
+  if (!navigator.onLine) document.getElementById('offlineBanner')?.classList.add('show');
 
   // ── New Chat ───────────────────────────────────────────────────
   newChatBtn.addEventListener('click', () => {
@@ -553,9 +554,205 @@
   function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
   function esc(s) { return s.replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 
+  // ══════════════════════════════════════════════════════════════
+  // STREAK TRACKER — Daily engagement tracking
+  // ══════════════════════════════════════════════════════════════
+  function updateStreak() {
+    const today = new Date().toDateString();
+    const lastVisit = localStorage.getItem('electiq-last-visit');
+    let streak = parseInt(localStorage.getItem('electiq-streak') || '0', 10);
+    
+    if (lastVisit === today) {
+      // Already visited today
+    } else {
+      const yesterday = new Date(Date.now() - 86400000).toDateString();
+      streak = (lastVisit === yesterday) ? streak + 1 : 1;
+      localStorage.setItem('electiq-streak', streak);
+      localStorage.setItem('electiq-last-visit', today);
+    }
+    
+    const countEl = document.getElementById('streakCount');
+    const labelEl = document.querySelector('.streak-label');
+    if (countEl) countEl.textContent = streak;
+    if (labelEl) labelEl.textContent = streak === 1 ? 'day streak' : 'day streak';
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // CHAT EXPORT — Download conversation as text
+  // ══════════════════════════════════════════════════════════════
+  const exportChatBtn = document.getElementById('exportChatBtn');
+  if (exportChatBtn) {
+    exportChatBtn.addEventListener('click', () => {
+      if (chatHistory.length === 0) {
+        alert('No chat to export yet. Start a conversation first!');
+        return;
+      }
+      let text = '🗳️ ElectIQ — Chat Export\n';
+      text += '━'.repeat(40) + '\n';
+      text += `Date: ${new Date().toLocaleString()}\n`;
+      text += `Language: ${currentLang.toUpperCase()}\n`;
+      text += '━'.repeat(40) + '\n\n';
+      
+      chatHistory.forEach(msg => {
+        const label = msg.role === 'user' ? '👤 You' : '🗳️ ElectIQ';
+        // Strip markdown for clean export
+        const clean = msg.content.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/#{1,6}\s?/g, '');
+        text += `${label}:\n${clean}\n\n`;
+      });
+      
+      text += '━'.repeat(40) + '\n';
+      text += 'Exported from ElectIQ — AI Election Education Assistant\n';
+      
+      const blob = new Blob([text], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `electiq-chat-${Date.now()}.txt`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      
+      sidebar.classList.remove('open');
+    });
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // QUIZ MODE — AI-generated election knowledge quizzes
+  // ══════════════════════════════════════════════════════════════
+  const quizModal = document.getElementById('quizModal');
+  const quizBody = document.getElementById('quizBody');
+  const quizFooter = document.getElementById('quizFooter');
+  const quizScore = document.getElementById('quizScore');
+  const quizModeBtn = document.getElementById('quizModeBtn');
+  const quizClose = document.getElementById('quizClose');
+  const quizRetry = document.getElementById('quizRetry');
+
+  let quizData = [];
+  let quizAnswered = 0;
+  let quizCorrect = 0;
+
+  if (quizModeBtn) {
+    quizModeBtn.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      openQuiz();
+    });
+  }
+  if (quizClose) quizClose.addEventListener('click', closeQuiz);
+  if (quizRetry) quizRetry.addEventListener('click', openQuiz);
+  if (quizModal) {
+    quizModal.addEventListener('click', (e) => {
+      if (e.target === quizModal) closeQuiz();
+    });
+  }
+
+  function closeQuiz() {
+    quizModal.classList.add('hidden');
+  }
+
+  async function openQuiz() {
+    quizModal.classList.remove('hidden');
+    quizFooter.style.display = 'none';
+    quizBody.innerHTML = '<div class="quiz-loading"><div class="typing-ind"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div><p>Generating quiz with AI...</p></div>';
+    quizData = [];
+    quizAnswered = 0;
+    quizCorrect = 0;
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: 'Generate exactly 5 multiple-choice quiz questions about elections and voting. Return ONLY valid JSON array, no markdown. Format: [{"q":"question","options":["A","B","C","D"],"answer":0,"explanation":"why"}] where answer is the 0-based index of correct option.',
+          history: [],
+          language: currentLang
+        })
+      });
+      const data = await res.json();
+      const reply = data.reply || '';
+      
+      // Extract JSON from response
+      const jsonMatch = reply.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        quizData = JSON.parse(jsonMatch[0]);
+        renderQuiz();
+      } else {
+        throw new Error('No valid JSON found');
+      }
+    } catch (err) {
+      // Fallback quiz
+      quizData = [
+        { q: "What is the minimum voting age in most democracies?", options: ["16 years", "18 years", "21 years", "25 years"], answer: 1, explanation: "Most countries set the voting age at 18, though some allow 16-year-olds to vote." },
+        { q: "What does EVM stand for in Indian elections?", options: ["Electronic Voting Machine", "Election Verification Method", "Electronic Vote Manager", "Election Voting Module"], answer: 0, explanation: "EVMs are Electronic Voting Machines used by the Election Commission of India." },
+        { q: "Which body conducts elections in India?", options: ["Supreme Court", "Parliament", "Election Commission", "President"], answer: 2, explanation: "The Election Commission of India is an autonomous body responsible for conducting elections." },
+        { q: "What is a ballot?", options: ["A campaign speech", "A paper/device used to cast votes", "A voter ID card", "An election result"], answer: 1, explanation: "A ballot is the means by which voters indicate their choice — paper or electronic." },
+        { q: "What does 'universal suffrage' mean?", options: ["Only educated can vote", "Everyone can vote", "Only men can vote", "Only taxpayers can vote"], answer: 1, explanation: "Universal suffrage means all adult citizens have the right to vote regardless of gender, race, or wealth." }
+      ];
+      renderQuiz();
+    }
+  }
+
+  function renderQuiz() {
+    const letters = ['A', 'B', 'C', 'D'];
+    quizBody.innerHTML = quizData.map((q, qi) => `
+      <div class="quiz-question" id="quizQ${qi}">
+        <div class="quiz-question-num">Question ${qi + 1} of ${quizData.length}</div>
+        <div class="quiz-question-text">${escHtml(q.q)}</div>
+        <div class="quiz-options">
+          ${q.options.map((opt, oi) => `
+            <button class="quiz-option" data-qi="${qi}" data-oi="${oi}">
+              <span class="quiz-option-letter">${letters[oi]}</span>
+              <span>${escHtml(opt)}</span>
+            </button>
+          `).join('')}
+        </div>
+        <div class="quiz-explanation" id="quizExp${qi}" style="display:none;"></div>
+      </div>
+    `).join('');
+
+    quizBody.querySelectorAll('.quiz-option').forEach(btn => {
+      btn.addEventListener('click', handleQuizAnswer);
+    });
+  }
+
+  function handleQuizAnswer(e) {
+    const btn = e.currentTarget;
+    const qi = parseInt(btn.dataset.qi);
+    const oi = parseInt(btn.dataset.oi);
+    const q = quizData[qi];
+    const isCorrect = oi === q.answer;
+
+    // Mark all options in this question
+    const questionEl = document.getElementById(`quizQ${qi}`);
+    questionEl.querySelectorAll('.quiz-option').forEach((opt, i) => {
+      opt.classList.add('selected');
+      if (i === q.answer) opt.classList.add('correct');
+      else if (i === oi && !isCorrect) opt.classList.add('wrong');
+    });
+
+    // Show explanation
+    const expEl = document.getElementById(`quizExp${qi}`);
+    expEl.style.display = 'block';
+    expEl.textContent = (isCorrect ? '✅ Correct! ' : '❌ Incorrect. ') + (q.explanation || '');
+
+    quizAnswered++;
+    if (isCorrect) quizCorrect++;
+
+    // Check if all answered
+    if (quizAnswered >= quizData.length) {
+      quizFooter.style.display = 'flex';
+      const pct = Math.round((quizCorrect / quizData.length) * 100);
+      quizScore.innerHTML = `<span class="score-num">${quizCorrect}/${quizData.length}</span> (${pct}%) ${pct >= 80 ? '🏆' : pct >= 60 ? '👍' : '📚'}`;
+    }
+  }
+
+  // ── ARIA: Sidebar toggle state ─────────────────────────────────
+  sidebarToggle.addEventListener('click', () => {
+    const isOpen = sidebar.classList.contains('open');
+    sidebarToggle.setAttribute('aria-expanded', isOpen);
+  });
+
   // ── Init ───────────────────────────────────────────────────────
   loadTopics();
   checkHealth();
   updateRobotGreeting();
+  updateStreak();
   msgInput.focus();
 })();

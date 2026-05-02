@@ -315,3 +315,65 @@ body{font-family:var(--font);background:var(--bg-1);color:var(--t1);
 @media(max-width:400px){
   .topic-cards{grid-template-columns:repeat(2,1fr)}
 }
+
+/* ── Skip Link (A11y) ────────────────────────────────────── */
+.skip-link{position:absolute;top:-100%;left:50%;transform:translateX(-50%);
+  background:var(--a1);color:#fff;padding:10px 20px;border-radius:0 0 8px 8px;
+  z-index:9999;font-weight:600;text-decoration:none;transition:top .2s}
+.skip-link:focus{top:0}
+
+/* ── Sidebar Actions ─────────────────────────────────────── */
+.sidebar-actions{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.sidebar-action-btn{width:100%;padding:10px 14px;background:var(--bg-c);border:1px solid var(--bdr);
+  border-radius:var(--r);color:var(--t2);font-family:var(--font);font-size:.82rem;
+  cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .2s}
+.sidebar-action-btn:hover{border-color:var(--a1);color:var(--a1);transform:translateX(4px)}
+.quiz-btn:hover{border-color:var(--a2);color:var(--a2)}
+
+/* ── Streak Display ──────────────────────────────────────── */
+.streak-display{display:flex;align-items:center;gap:6px;padding:8px 0;margin-bottom:6px}
+.streak-flame{font-size:1.2rem;animation:flamePulse 1.5s ease-in-out infinite}
+@keyframes flamePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2) rotate(-5deg)}}
+.streak-count{font-size:1.1rem;font-weight:800;background:var(--g1);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text}
+.streak-label{font-size:.7rem;color:var(--t3)}
+
+/* ── Modal Overlay ───────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .3s ease-out}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-overlay.hidden{display:none!important}
+.modal-content{background:var(--bg-2);border:1px solid var(--bdr);border-radius:var(--rrr);
+  width:100%;max-width:520px;max-height:85vh;overflow-y:auto;animation:slideUp .35s ease-out}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;
+  border-bottom:1px solid var(--bdr)}
+.modal-header h3{font-size:1.05rem;font-weight:700}
+.modal-close{background:none;border:none;color:var(--t2);font-size:1.2rem;cursor:pointer;
+  padding:4px 8px;border-radius:8px;transition:all .2s}
+.modal-close:hover{background:var(--bg-c);color:var(--t1)}
+
+/* ── Quiz Body ───────────────────────────────────────────── */
+.quiz-body{padding:22px}
+.quiz-loading{text-align:center;padding:40px 20px;color:var(--t3)}
+.quiz-loading p{margin-top:12px;font-size:.85rem}
+.quiz-question{margin-bottom:20px}
+.quiz-question-text{font-size:.95rem;font-weight:600;margin-bottom:12px;line-height:1.5}
+.quiz-question-num{font-size:.7rem;color:var(--a1);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-option{padding:12px 16px;background:var(--bg-c);border:1px solid var(--bdr);border-radius:var(--r);
+  cursor:pointer;font-family:var(--font);font-size:.85rem;color:var(--t1);text-align:left;
+  transition:all .2s;display:flex;align-items:center;gap:10px}
+.quiz-option:hover:not(.selected){border-color:var(--a1);transform:translateX(4px)}
+.quiz-option.correct{background:rgba(0,206,201,.15);border-color:var(--a2);color:var(--a2)}
+.quiz-option.wrong{background:rgba(253,121,168,.12);border-color:var(--a3);color:var(--a3)}
+.quiz-option.selected{pointer-events:none}
+.quiz-option-letter{width:26px;height:26px;border-radius:50%;background:var(--bg-i);border:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0}
+.quiz-explanation{margin-top:10px;padding:10px 14px;background:rgba(108,92,231,.08);border-radius:8px;
+  font-size:.8rem;color:var(--t2);line-height:1.5;border-left:3px solid var(--a1)}
+.quiz-footer{padding:16px 22px;border-top:1px solid var(--bdr);display:flex;align-items:center;
+  justify-content:space-between;gap:12px}
+.quiz-score{font-size:1rem;font-weight:700}
+.quiz-score .score-num{font-size:1.4rem;background:var(--g1);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text}

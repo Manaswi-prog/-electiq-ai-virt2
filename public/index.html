@@ -2,10 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
   <title>ElectIQ — AI Election Process Education Assistant</title>
   <meta name="description" content="Interactive AI assistant helping everyone understand elections — voice-enabled, multilingual, and accessible for all." />
   <meta name="theme-color" content="#0a0a1a" />
+  <meta name="keywords" content="election, voting, AI, education, voter registration, democracy, multilingual" />
+  <meta property="og:title" content="ElectIQ — AI Election Education" />
+  <meta property="og:description" content="Voice-enabled, multilingual AI assistant for election education. Built with Google Gemini." />
+  <meta property="og:type" content="website" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗳️</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -14,7 +18,11 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <div id="offlineBanner" class="offline-banner">⚠️ You are offline. Please check your connection.</div>
+  <!-- Skip to content for accessibility -->
+  <a href="#chatArea" class="skip-link" id="skipLink">Skip to main content</a>
+
+  <div id="offlineBanner" class="offline-banner" role="alert">⚠️ You are offline. Please check your connection.</div>
+
   <!-- Background Effects -->
   <canvas id="bgCanvas" aria-hidden="true"></canvas>
   <div class="gradient-orbs" aria-hidden="true">
@@ -25,7 +33,7 @@
 
   <div id="app" class="app-container">
     <!-- ── Sidebar ──────────────────────────────────────────── -->
-    <aside id="sidebar" class="sidebar">
+    <aside id="sidebar" class="sidebar" role="complementary" aria-label="Settings and topics">
       <div class="sidebar-header">
         <div class="logo">
           <div class="logo-icon">🗳️</div>
@@ -44,7 +52,7 @@
 
         <!-- Language Selector -->
         <div class="lang-section">
-          <label class="section-label">🌐 Language / भाषा</label>
+          <label class="section-label" for="langSelect">🌐 Language / भाषा</label>
           <select id="langSelect" class="lang-select" aria-label="Select language">
             <option value="en">🇬🇧 English</option>
             <option value="hi">🇮🇳 हिन्दी</option>
@@ -82,7 +90,7 @@
           </div>
           <div class="toggle-row">
             <span>Speed</span>
-            <input type="range" id="speechRate" min="0.5" max="2" step="0.1" value="1" class="speed-slider" />
+            <input type="range" id="speechRate" min="0.5" max="2" step="0.1" value="1" class="speed-slider" aria-label="Speech rate" />
           </div>
         </div>
 
@@ -91,19 +99,35 @@
           <label class="section-label">⚡ Quick Topics</label>
           <div id="topicsList" class="topics-list"></div>
         </div>
+
+        <!-- Sidebar Actions -->
+        <div class="sidebar-actions">
+          <button id="quizModeBtn" class="sidebar-action-btn quiz-btn">
+            <span>🧠</span> Quiz Mode
+          </button>
+          <button id="exportChatBtn" class="sidebar-action-btn export-btn">
+            <span>📥</span> Export Chat
+          </button>
+        </div>
       </div>
 
       <div class="sidebar-footer">
+        <!-- Streak Counter -->
+        <div class="streak-display" id="streakDisplay">
+          <span class="streak-flame">🔥</span>
+          <span class="streak-count" id="streakCount">0</span>
+          <span class="streak-label">day streak</span>
+        </div>
         <div class="footer-badge"><span class="badge-dot"></span> Powered by Gemini AI</div>
         <p class="footer-note">Non-partisan • For Everyone • All Languages</p>
       </div>
     </aside>
 
     <!-- ── Main ─────────────────────────────────────────────── -->
-    <main class="main-content">
+    <main class="main-content" role="main">
       <!-- Top Bar -->
-      <header class="topbar">
-        <button id="sidebarToggle" class="hamburger" aria-label="Menu">
+      <header class="topbar" role="banner">
+        <button id="sidebarToggle" class="hamburger" aria-label="Open menu" aria-expanded="false">
           <span></span><span></span><span></span>
         </button>
         <div class="topbar-center">
@@ -118,7 +142,7 @@
       </header>
 
       <!-- Chat Area -->
-      <div id="chatArea" class="chat-area">
+      <div id="chatArea" class="chat-area" role="log" aria-live="polite" aria-label="Chat messages">
 
         <!-- ── Welcome Screen ────────────────────────────────── -->
         <div id="welcomeScreen" class="welcome">
@@ -161,7 +185,7 @@
             <div class="feat"><span>🎤</span><span>Voice Input</span></div>
             <div class="feat"><span>🔊</span><span>Read Aloud</span></div>
             <div class="feat"><span>🌐</span><span>21 Languages</span></div>
-            <div class="feat"><span>📱</span><span>Mobile Ready</span></div>
+            <div class="feat"><span>🧠</span><span>Quiz Mode</span></div>
           </div>
         </div>
 
@@ -204,6 +228,26 @@
         </div>
       </div>
     </main>
+  </div>
+
+  <!-- Quiz Modal -->
+  <div id="quizModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="quizTitle">
+    <div class="modal-content quiz-modal">
+      <div class="modal-header">
+        <h3 id="quizTitle">🧠 Election Knowledge Quiz</h3>
+        <button id="quizClose" class="modal-close" aria-label="Close quiz">✕</button>
+      </div>
+      <div id="quizBody" class="quiz-body">
+        <div class="quiz-loading">
+          <div class="typing-ind"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>
+          <p>Generating quiz with AI...</p>
+        </div>
+      </div>
+      <div class="quiz-footer" id="quizFooter" style="display:none;">
+        <div class="quiz-score" id="quizScore"></div>
+        <button id="quizRetry" class="new-chat-btn" style="max-width:200px;">🔄 New Quiz</button>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
