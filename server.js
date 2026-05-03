@@ -76,7 +76,8 @@ app.post('/api/chat', async (req, res) => {
     const chatHistory = history.slice(-12).map(msg => {
       let parts = [];
       if (msg.image && msg.mimeType) {
-        parts.push({ inlineData: { data: msg.image.split(',')[1], mimeType: msg.mimeType } });
+        const b64 = msg.image.includes(',') ? msg.image.split(',')[1] : msg.image;
+        parts.push({ inlineData: { data: b64, mimeType: msg.mimeType } });
       }
       if (msg.content) {
         parts.push({ text: msg.content });
@@ -113,8 +114,9 @@ app.post('/api/chat', async (req, res) => {
         
         let msgPayload = nameContext + langTag + (message || 'What is in this image regarding elections?');
         if (image) {
+          const b64 = image.includes(',') ? image.split(',')[1] : image;
           msgPayload = [
-            { inlineData: { data: image.split(',')[1], mimeType: mimeType } },
+            { inlineData: { data: b64, mimeType: mimeType } },
             { text: msgPayload }
           ];
         }
