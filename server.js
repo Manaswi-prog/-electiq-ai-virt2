@@ -48,7 +48,7 @@ function initializeAI() {
   }
   try {
     genAI = new GoogleGenerativeAI(apiKey);
-    model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     console.log('✅ Gemini AI initialized successfully');
     return true;
   } catch (err) {
@@ -102,10 +102,7 @@ app.post('/api/chat', async (req, res) => {
 
     const models = [model];
     if (genAI) {
-      const fallbacks = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash-8b'];
-      for (const fb of fallbacks) {
-        try { models.push(genAI.getGenerativeModel({ model: fb })); } catch (_) {}
-      }
+      try { models.push(genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' })); } catch (_) {}
     }
 
     let streamSuccess = false;
@@ -122,9 +119,10 @@ app.post('/api/chat', async (req, res) => {
           ];
         }
 
-        const resultStream = await chat.sendMessageStream(msgPayload);
+        const result = await chat.sendMessageStream(msgPayload);
+        const stream = result.stream || result;
         
-        for await (const chunk of resultStream) {
+        for await (const chunk of stream) {
           if (!res.headersSent) {
             res.setHeader('Content-Type', 'text/plain; charset=utf-8');
             res.setHeader('Transfer-Encoding', 'chunked');

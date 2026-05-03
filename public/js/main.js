@@ -297,9 +297,12 @@ msgInput.focus();
 function updateRobotGreeting() {
   const defaultGreeting = robotGreetings[currentLang] || robotGreetings.en;
   if (userName) {
-     robotSpeech.innerHTML = `Hey <strong>${userName}</strong>! 👋<br/>` + defaultGreeting.replace(/Hi! I'm <strong>ElectIQ<\\/strong> 👋<br\\/>/, '').replace(/नमस्ते! मैं <strong>ElectIQ<\\/strong> हूं 👋<br\\/>/, '');
+    const cleanGreeting = defaultGreeting
+      .replace("Hi! I'm <strong>ElectIQ</strong> 👋<br/>", "")
+      .replace("नमस्ते! मैं <strong>ElectIQ</strong> हूं 👋<br/>", "");
+    robotSpeech.innerHTML = "Hey <strong>" + userName + "</strong>! 👋<br/>" + cleanGreeting;
   } else {
-     robotSpeech.innerHTML = defaultGreeting;
+    robotSpeech.innerHTML = defaultGreeting;
   }
 }
 
