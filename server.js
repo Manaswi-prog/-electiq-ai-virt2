@@ -103,10 +103,11 @@ app.post('/api/chat', async (req, res) => {
         const chat = m.startChat(chatConfig);
         const resultStream = await chat.sendMessageStream(nameContext + langTag + message);
         
-        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-        res.setHeader('Transfer-Encoding', 'chunked');
-        
         for await (const chunk of resultStream) {
+          if (!res.headersSent) {
+            res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+            res.setHeader('Transfer-Encoding', 'chunked');
+          }
           res.write(chunk.text());
         }
         res.end();
@@ -114,11 +115,16 @@ app.post('/api/chat', async (req, res) => {
         break;
       } catch (err) {
         console.error(`Model error: ${err.message?.slice(0, 150)}`);
+        // If headers were already sent, we cannot fallback cleanly. End the response.
+        if (res.headersSent) {
+          res.end('\n\n⚠️ Connection to AI interrupted. Please try again.');
+          return;
+        }
         continue; 
       }
     }
 
-    if (!streamSuccess) {
+    if (!streamSuccess && !res.headersSent) {
       res.setHeader('Content-Type', 'text/plain; charset=utf-8');
       res.end(language === 'hi' 
         ? 'यहाँ **मतदान** और चुनाव के बारे में कुछ ज़रूरी बातें हैं:\n\n### 🗳️ आपके वोट की ताकत\nवोट देना मतलब अपने नेता खुद चुनना! यह लोकतंत्र की नींव है।\n\n### 📋 पंजीकरण ज़रूरी है\nवोट देने से पहले आपका नाम वोटर लिस्ट में होना चाहिए।\n\n### 🔒 पूरी गोपनीयता\nआपका वोट 100% गुप्त है! कोई भी नहीं जान सकता कि आपने किसे वोट दिया।\n\nलोकतंत्र तभी मज़बूत होता है जब हर नागरिक वोट दे। आपका वोट, आपकी आवाज़! ✊'
