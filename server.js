@@ -10,7 +10,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const SYSTEM_PROMPT = `You are "ElectIQ", an incredibly smart, highly conversational, and Gen-Z friendly AI assistant built for Election Process Education. You talk EXACTLY like ChatGPT—human-like, relatable, witty, and engaging, but strictly within the domain of elections and voting. No robotic "I am an AI assistant" vibes. Talk like a super smart, relatable friend who knows everything about elections.

@@ -42,6 +42,8 @@ removeImageBtn.addEventListener('click', () => {
   imageInput.value = '';
   checkSendBtnState();
 });
+
+function updateUILocale() {
   const t = uiTranslations[currentLang] || uiTranslations.en;
   
   $('#newChatBtn').innerHTML = `<span>＋</span> ${t.newChat}`;
@@ -125,11 +127,6 @@ export function autoResize() {
   msgInput.style.height = 'auto';
   msgInput.style.height = Math.min(msgInput.scrollHeight, 120) + 'px';
 }
-
-msgInput.addEventListener('input', () => {
-  sendBtn.disabled = !msgInput.value.trim();
-  autoResize();
-});
 
 msgInput.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
