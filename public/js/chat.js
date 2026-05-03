@@ -1,5 +1,5 @@
 import { msgInput, sendBtn, welcomeScreen, messagesBox, chatArea, sidebar } from './dom.js';
-import { currentLang } from './config.js';
+import { currentLang, userName } from './config.js';
 import { speakText, stopSpeaking, setRobotState } from './speech.js';
 import { escHtml } from './dom.js';
 
