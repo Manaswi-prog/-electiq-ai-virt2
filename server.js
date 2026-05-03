@@ -250,6 +250,39 @@ app.get('/api/topics', (req, res) => {
   });
 });
 
+// ── Generate Voter Plan ──────────────────────────────────────────
+app.post('/api/generate-plan', async (req, res) => {
+  if (!model) {
+    return res.status(503).json({ error: "AI not configured. Add GEMINI_API_KEY." });
+  }
+
+  const { language = 'en', userName = 'Voter' } = req.body;
+  const langTag = language === 'hi' ? '[Respond in Hindi] ' : '';
+
+  try {
+    const prompt = `${langTag}You are ElectIQ, an AI Election Assistant. Create a highly structured, beautiful HTML "Personalized Voter Action Plan" for ${userName}.
+    
+    The HTML should include:
+    1. A header with the title "Your Voter Action Plan"
+    2. A checklist of 3 steps to register to vote.
+    3. A checklist of 3 things to bring to the polling booth.
+    4. A short inspirational quote about democracy.
+    
+    CRITICAL: Return ONLY valid, raw HTML. Do not wrap in markdown \`\`\`html tags. Do not include <html> or <body> tags, just the content (divs, h1, ul, li). Keep it clean and visually structured with inline CSS (use colors like #6c5ce7, #00cec9). Use a professional, clean design.`;
+
+    const result = await model.generateContent(prompt);
+    let html = result.response.text();
+    
+    // Clean up if the model wrapped it in markdown
+    html = html.replace(/```html/gi, '').replace(/```/gi, '').trim();
+
+    res.json({ html });
+  } catch (err) {
+    console.error('Plan generation error:', err.message);
+    res.status(500).json({ error: "Failed to generate plan." });
+  }
+});
+
 // ── Health check ─────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy', ai: !!model, timestamp: new Date().toISOString() });

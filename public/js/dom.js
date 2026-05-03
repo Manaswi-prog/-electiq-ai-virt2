@@ -28,6 +28,7 @@ export const imageInput = $('#imageInput');
 export const imagePreviewContainer = $('#imagePreviewContainer');
 export const imagePreview = $('#imagePreview');
 export const removeImageBtn = $('#removeImageBtn');
+export const generatePdfBtn = $('#generatePdfBtn');
 
 export const onboardingModal = $('#onboardingModal');
 export const onboardNameInput = $('#onboardNameInput');

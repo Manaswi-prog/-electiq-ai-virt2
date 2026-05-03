@@ -1,4 +1,4 @@
-import { $, sidebar, sidebarToggle, sidebarClose, newChatBtn, topicsList, welcomeCards, welcomeScreen, messagesBox, msgInput, sendBtn, themeBtn, themeIcon, aiStatus, bgCanvas, langSelect, voiceBtn, stopSpeakBtn, robotSpeech, onboardingModal, onboardNameInput, onboardSubmitBtn, imageBtn, imageInput, imagePreviewContainer, imagePreview, removeImageBtn } from './dom.js';
+import { $, sidebar, sidebarToggle, sidebarClose, newChatBtn, topicsList, welcomeCards, welcomeScreen, messagesBox, msgInput, sendBtn, themeBtn, themeIcon, aiStatus, bgCanvas, langSelect, voiceBtn, stopSpeakBtn, robotSpeech, onboardingModal, onboardNameInput, onboardSubmitBtn, imageBtn, imageInput, imagePreviewContainer, imagePreview, removeImageBtn, generatePdfBtn } from './dom.js';
 import { currentLang, setCurrentLang, uiTranslations, robotGreetings, langVoiceMap, userName, setUserName } from './config.js';
 import { initSpeechRecognition, stopSpeaking, synth, setRobotState, recognition, isListening } from './speech.js';
 import { sendMessage, clearChat, chatHistory, setImage, clearImage } from './chat.js';
@@ -162,6 +162,47 @@ if (exportChatBtn) {
     a.click();
     URL.revokeObjectURL(a.href);
     sidebar.classList.remove('open');
+  });
+}
+
+if (generatePdfBtn) {
+  generatePdfBtn.addEventListener('click', async () => {
+    generatePdfBtn.innerHTML = '<span>⏳</span> Generating...';
+    generatePdfBtn.disabled = true;
+    try {
+      const res = await fetch('/api/generate-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ language: currentLang, userName: userName })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      // Create a temporary container for the PDF content
+      const container = document.createElement('div');
+      container.innerHTML = data.html;
+      container.style.padding = '20px';
+      container.style.fontFamily = 'Inter, sans-serif';
+      container.style.color = '#333';
+      
+      const opt = {
+        margin:       10,
+        filename:     `Voter_Plan_${userName || 'ElectIQ'}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      await html2pdf().set(opt).from(container).save();
+      
+    } catch (e) {
+      console.error(e);
+      alert('Failed to generate PDF. Check connection or API key.');
+    } finally {
+      generatePdfBtn.innerHTML = '<span>📄</span> Generate Voter Plan';
+      generatePdfBtn.disabled = false;
+      sidebar.classList.remove('open');
+    }
   });
 }
 
