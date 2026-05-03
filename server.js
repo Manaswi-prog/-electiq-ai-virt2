@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -13,58 +13,29 @@ const PORT = process.env.PORT || 8080;
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ── System prompt ────────────────────────────────────────────────
-const SYSTEM_PROMPT = `You are "ElectIQ" — a world-class, friendly, and deeply knowledgeable AI assistant built for Election Process Education. You are designed for EVERYONE — from first-time voters to political science students, from illiterate citizens to Gen-Z digital natives, across every country and language.
+const SYSTEM_PROMPT = `You are "ElectIQ", an incredibly smart, highly conversational, and Gen-Z friendly AI assistant built for Election Process Education. You talk EXACTLY like ChatGPT—human-like, relatable, witty, and engaging, but strictly within the domain of elections and voting. No robotic "I am an AI assistant" vibes. Talk like a super smart, relatable friend who knows everything about elections.
 
-## CRITICAL RULES:
-1. **ALWAYS respond in the SAME LANGUAGE the user writes in.** If they write in Hindi, respond in Hindi. If in Spanish, respond in Spanish. Match their language automatically.
-2. If the user specifies a preferred language via a system tag like [LANG:hi], always respond in that language regardless of the message language.
-3. Use SIMPLE words. Avoid jargon. Explain like you're talking to a 10-year-old.
-4. Use LOTS of emojis to make content visual and engaging — this helps illiterate users follow along.
-5. Use numbered steps (1️⃣ 2️⃣ 3️⃣) for any process explanation.
-6. Keep paragraphs SHORT — max 2-3 sentences each.
-7. Use **bold** for key terms so they stand out.
-8. Be NON-PARTISAN — never favor any political party, candidate, or ideology.
+## CORE PERSONALITY & TONE:
+1. **Human & Relatable:** Sound like a real person. Use modern slang, casual phrasing, and a bit of witty banter when appropriate (Gen-Z style).
+2. **Personalized:** Always use the user's name if provided. If they are new, welcome them warmly. Treat them like a friend.
+3. **No Robotic Cliches:** Never say "As an AI..." or "How can I assist you today?". Instead say things like "Hey [Name], what's on your mind?" or "Let's dive into it!"
+4. **Adaptive:** If they ask a simple question, give a punchy, easy-to-understand answer. If they want deep details, break it down like you're explaining it to a friend over coffee.
+5. **Language Matching:** ALWAYS respond in the SAME LANGUAGE the user writes in, or the language specified in [LANG:xx]. Match the vibe and slang in that language too!
 
-## Your Expertise Covers:
-🗳️ **Voter Registration** — How to register, eligibility, ID requirements, deadlines
-📅 **Election Timeline** — Key dates from announcement to results certification
-🏛️ **Types of Elections** — Local, state, national, primary, general, special, runoff
-✉️ **Voting Methods** — In-person, mail-in, absentee, early voting, online (where available)
-⚖️ **Electoral Systems** — First-past-the-post, proportional, Electoral College, ranked-choice
-📜 **Ballots** — How to read a ballot, candidate info, ballot measures/propositions
-🔒 **Election Security** — Safeguards, auditing, observer roles, fighting misinformation
-📊 **Results** — Counting, recounts, certification, transition of power
-🌍 **Global Elections** — India (ECI), USA, UK, EU, and 190+ countries
-🤝 **Civic Participation** — Volunteering, poll watching, advocacy, community organizing
+## YOUR DOMAIN EXPERTISE:
+You know everything about:
+🗳️ Voter Registration, 📅 Election Timelines, 🏛️ Types of Elections, ✉️ Voting Methods, ⚖️ Electoral Systems, 📜 Ballots, 🔒 Election Security, 📊 Results, and 🌍 Global Elections (India, USA, UK, EU, etc.).
 
-## For ILLITERATE / UNEDUCATED Users:
-- Use very simple, everyday language
-- Give real-world analogies (like comparing voting to choosing a class captain)
-- Use visual descriptions and emojis heavily
-- Keep sentences under 10 words when possible
-- Offer encouragement — "Your vote matters! 💪"
+## FORMATTING RULES:
+1. Use emojis naturally, not excessively.
+2. Keep paragraphs short and scannable.
+3. Use bullet points or numbered lists if explaining a process, but keep it conversational.
 
-## For GEN-Z Users:
-- Be conversational and engaging
-- Use modern references they relate to
-- Include fun facts and "did you know?" snippets
-- Make it feel like chatting with a knowledgeable friend
+## STRICT SAFETY RULES:
+- BE NON-PARTISAN. Never endorse a political party, candidate, or ideology.
+- Don't roast their political beliefs. Keep it fun and educational.
+- If they ask off-topic questions, creatively steer it back to elections with a witty remark.`;
 
-## Personality:
-- Warm, encouraging, patient
-- Celebrates democracy and every citizen's voice
-- Uses humor appropriately
-- Never condescending — treats every question as important
-- If unsure about something, says so honestly
-
-## Safety:
-- NEVER share political opinions or endorse candidates
-- NEVER spread misinformation about election processes
-- Always recommend verifying with official election authorities
-- Redirect off-topic questions back to election education politely`;
-
-// ── Gemini AI ────────────────────────────────────────────────────
 let genAI = null;
 let model = null;
 
@@ -85,22 +56,23 @@ function initializeAI() {
   }
 }
 
-// ── Chat endpoint ────────────────────────────────────────────────
+// ── Chat endpoint (Streaming) ────────────────────────────────────
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message, history = [], language = 'en' } = req.body;
+    const { message, history = [], language = 'en', userName = '' } = req.body;
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
     if (!model) {
-      return res.json({
-        reply: getFallbackResponse(language)
-      });
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      return res.end(getFallbackResponse(language));
     }
 
+    const nameContext = userName ? `[SYSTEM: The user's name is ${userName}. Talk directly to them.] ` : '';
     const langTag = language !== 'en' ? `[LANG:${language}] ` : '';
+    
     const chatHistory = history.slice(-12).map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [{ text: msg.content }]
@@ -110,15 +82,13 @@ app.post('/api/chat', async (req, res) => {
       history: chatHistory,
       systemInstruction: { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
       generationConfig: {
-        temperature: 0.75,
+        temperature: 0.8, // Slightly higher for more conversational variety
         topP: 0.92,
         topK: 40,
         maxOutputTokens: 2048,
       }
     };
 
-    // Try primary model, then fallback model
-    // Try multiple model families to avoid quota exhaustion
     const models = [model];
     if (genAI) {
       const fallbacks = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash-8b'];
@@ -127,31 +97,115 @@ app.post('/api/chat', async (req, res) => {
       }
     }
 
-    let lastErr = null;
+    let streamSuccess = false;
     for (const m of models) {
       try {
         const chat = m.startChat(chatConfig);
-        const result = await chat.sendMessage(langTag + message);
-        const reply = result.response.text();
-        return res.json({ reply });
+        const resultStream = await chat.sendMessageStream(nameContext + langTag + message);
+        
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        res.setHeader('Transfer-Encoding', 'chunked');
+        
+        for await (const chunk of resultStream) {
+          res.write(chunk.text());
+        }
+        res.end();
+        streamSuccess = true;
+        break;
       } catch (err) {
-        lastErr = err;
         console.error(`Model error: ${err.message?.slice(0, 150)}`);
-        continue; // try next model
+        continue; 
       }
     }
 
-    // All models failed — return a perfect educational response instead of an error
-    return res.json({
-      reply: language === 'hi'
-        ? 'यहाँ **मतदान** और चुनाव के बारे में कुछ ज़रूरी बातें हैं:\n\n### 🗳️ आपके वोट की ताकत\nवोट देना मतलब अपने नेता खुद चुनना! यह लोकतंत्र की नींव है। जैसे स्कूल में क्लास कैप्टन चुनते हैं, वैसे ही देश का नेता चुनते हैं! 💪\n\n### 📋 पंजीकरण ज़रूरी है\nवोट देने से पहले आपका नाम वोटर लिस्ट में होना चाहिए। अपने नज़दीकी चुनाव कार्यालय में जाकर रजिस्ट्रेशन कराएं।\n\n### 🔒 पूरी गोपनीयता\nआपका वोट 100% गुप्त है! कोई भी नहीं जान सकता कि आपने किसे वोट दिया। बिल्कुल चिंता मत करो! 🤫\n\n### 🌍 भारत में कैसे होते हैं चुनाव?\n*   🇮🇳 **EVM मशीन** से बटन दबाकर वोट देते हैं — बहुत आसान!\n*   📋 **वोटर ID कार्ड** ज़रूरी है\n*   ✅ चुनाव आयोग सब कुछ निष्पक्ष रखता है\n\nलोकतंत्र तभी मज़बूत होता है जब हर नागरिक वोट दे। आपका वोट, आपकी आवाज़! ✊'
-        : 'Here are some **quick facts about voting** and global election systems:\n\n### 🗳️ The Power of Your Vote\nVoting gives citizens the direct power to choose their leaders and shape the future of their country. It is the core of democracy!\n\n### 📋 Registration is Required\nBefore you can vote, you must be officially registered. Every country has specific deadlines, so always check early.\n\n### 🔒 Complete Secrecy\nYour vote is 100% confidential. The system is designed so that absolutely no one can find out who you voted for.\n\n### 🌍 How Systems Differ Globally\n*   🇮🇳 **India:** Uses **EVMs (Electronic Voting Machines)** for fast, secure, and paperless counting.\n*   🇺🇸 **USA:** Primarily uses **Paper Ballots** scanned by machines, and uses an **Electoral College** system.\n*   🇬🇧 **UK:** Uses a **First-Past-The-Post** system where voters mark paper ballots in private booths.\n\nDemocracy works best when everyone participates. Make your voice heard! ✊'
-    });
+    if (!streamSuccess) {
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.end(language === 'hi' 
+        ? 'यहाँ **मतदान** और चुनाव के बारे में कुछ ज़रूरी बातें हैं:\n\n### 🗳️ आपके वोट की ताकत\nवोट देना मतलब अपने नेता खुद चुनना! यह लोकतंत्र की नींव है।\n\n### 📋 पंजीकरण ज़रूरी है\nवोट देने से पहले आपका नाम वोटर लिस्ट में होना चाहिए।\n\n### 🔒 पूरी गोपनीयता\nआपका वोट 100% गुप्त है! कोई भी नहीं जान सकता कि आपने किसे वोट दिया।\n\nलोकतंत्र तभी मज़बूत होता है जब हर नागरिक वोट दे। आपका वोट, आपकी आवाज़! ✊'
+        : 'Here are some **quick facts about voting** and global election systems:\n\n### 🗳️ The Power of Your Vote\nVoting gives citizens the direct power to choose their leaders and shape the future of their country.\n\n### 📋 Registration is Required\nBefore you can vote, you must be officially registered.\n\n### 🔒 Complete Secrecy\nYour vote is 100% confidential. The system is designed so that absolutely no one can find out who you voted for.\n\nDemocracy works best when everyone participates. Make your voice heard! ✊'
+      );
+    }
   } catch (err) {
     console.error('Chat error:', err.message);
-    res.json({
-      reply: '⚠️ I encountered an issue. Please try again in a moment.'
-    });
+    if (!res.headersSent) {
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.end('⚠️ I encountered an issue. Please try again in a moment.');
+    } else {
+      res.end('\n\n⚠️ Error during generation.');
+    }
+  }
+});
+
+// ── Quiz endpoint (Structured JSON Output) ───────────────────────
+app.post('/api/quiz', async (req, res) => {
+  try {
+    const { language = 'en' } = req.body;
+    if (!model) {
+      return res.json([
+        { q: "What is the minimum voting age in most democracies?", options: ["16 years", "18 years", "21 years", "25 years"], answer: 1, explanation: "Most countries set the voting age at 18, though some allow 16-year-olds to vote." },
+        { q: "What does EVM stand for in Indian elections?", options: ["Electronic Voting Machine", "Election Verification Method", "Electronic Vote Manager", "Election Voting Module"], answer: 0, explanation: "EVMs are Electronic Voting Machines used by the Election Commission of India." },
+        { q: "Which body conducts elections in India?", options: ["Supreme Court", "Parliament", "Election Commission", "President"], answer: 2, explanation: "The Election Commission of India is an autonomous body responsible for conducting elections." },
+        { q: "What is a ballot?", options: ["A campaign speech", "A paper/device used to cast votes", "A voter ID card", "An election result"], answer: 1, explanation: "A ballot is the means by which voters indicate their choice — paper or electronic." },
+        { q: "What does 'universal suffrage' mean?", options: ["Only educated can vote", "Everyone can vote", "Only men can vote", "Only taxpayers can vote"], answer: 1, explanation: "Universal suffrage means all adult citizens have the right to vote regardless of gender, race, or wealth." }
+      ]);
+    }
+
+    const langTag = language !== 'en' ? `[LANG:${language}] ` : '';
+    
+    const quizSchema = {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          q: { type: SchemaType.STRING, description: "The quiz question" },
+          options: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING }, description: "Exactly 4 possible answers" },
+          answer: { type: SchemaType.INTEGER, description: "0-based index of the correct answer (0 to 3)" },
+          explanation: { type: SchemaType.STRING, description: "Short explanation of why the answer is correct" }
+        },
+        required: ["q", "options", "answer", "explanation"]
+      }
+    };
+
+    const quizConfig = {
+      systemInstruction: { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
+      generationConfig: {
+        temperature: 0.7,
+        responseMimeType: "application/json",
+        responseSchema: quizSchema,
+      }
+    };
+
+    const models = [model];
+    if (genAI) {
+      const fallbacks = ['gemini-2.0-flash-lite', 'gemini-1.5-flash-8b'];
+      for (const fb of fallbacks) {
+        try { models.push(genAI.getGenerativeModel({ model: fb })); } catch (_) {}
+      }
+    }
+
+    for (const m of models) {
+      try {
+        const chat = m.startChat(quizConfig);
+        const result = await chat.sendMessage(langTag + "Generate exactly 5 multiple-choice quiz questions about elections and voting.");
+        return res.json(JSON.parse(result.response.text()));
+      } catch (err) {
+        console.error(`Quiz Model error: ${err.message}`);
+        continue;
+      }
+    }
+    
+    // Fallback if all models fail
+    return res.json([
+      { q: "What is the minimum voting age in most democracies?", options: ["16 years", "18 years", "21 years", "25 years"], answer: 1, explanation: "Most countries set the voting age at 18, though some allow 16-year-olds to vote." },
+      { q: "What does EVM stand for in Indian elections?", options: ["Electronic Voting Machine", "Election Verification Method", "Electronic Vote Manager", "Election Voting Module"], answer: 0, explanation: "EVMs are Electronic Voting Machines used by the Election Commission of India." },
+      { q: "Which body conducts elections in India?", options: ["Supreme Court", "Parliament", "Election Commission", "President"], answer: 2, explanation: "The Election Commission of India is an autonomous body responsible for conducting elections." },
+      { q: "What is a ballot?", options: ["A campaign speech", "A paper/device used to cast votes", "A voter ID card", "An election result"], answer: 1, explanation: "A ballot is the means by which voters indicate their choice — paper or electronic." },
+      { q: "What does 'universal suffrage' mean?", options: ["Only educated can vote", "Everyone can vote", "Only men can vote", "Only taxpayers can vote"], answer: 1, explanation: "Universal suffrage means all adult citizens have the right to vote regardless of gender, race, or wealth." }
+    ]);
+
+  } catch (err) {
+    console.error('Quiz error:', err.message);
+    res.status(500).json({ error: "Failed to generate quiz" });
   }
 });
 
