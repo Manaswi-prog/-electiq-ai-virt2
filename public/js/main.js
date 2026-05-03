@@ -43,8 +43,9 @@ removeImageBtn.addEventListener('click', () => {
   checkSendBtnState();
 });
 
-function updateUILocale() {
-  const t = uiTranslations[currentLang] || uiTranslations.en;
+function updateUILocale(lang) {
+  if (!lang) lang = currentLang;
+  const t = uiTranslations[lang] || uiTranslations.en;
   
   $('#newChatBtn').innerHTML = `<span>＋</span> ${t.newChat}`;
   const sectionLabels = document.querySelectorAll('.section-label');
@@ -81,7 +82,7 @@ function updateUILocale() {
 
   updateRobotGreeting();
 
-  loadTopics();
+  loadTopics(lang);
 }
 
 const savedTheme = localStorage.getItem('electiq-theme') || 'dark';
@@ -102,8 +103,9 @@ function updateThemeIcon() {
 
 langSelect.value = currentLang;
 langSelect.addEventListener('change', () => {
-  setCurrentLang(langSelect.value);
-  updateUILocale();
+  const lang = langSelect.value;
+  setCurrentLang(lang);
+  updateUILocale(lang);
 });
 
 sidebarToggle.addEventListener('click', () => {
@@ -179,13 +181,14 @@ function updateStreak() {
   if (countEl) countEl.textContent = streak;
 }
 
-async function loadTopics() {
+async function loadTopics(lang) {
+  if (!lang) lang = currentLang;
   try {
     const res = await fetch('/api/topics');
     const data = await res.json();
     topicsList.innerHTML = data.topics.map(t => {
-      const title = currentLang === 'hi' && t.titleHi ? t.titleHi : t.title;
-      const prompt = currentLang === 'hi' && t.promptHi ? t.promptHi : t.prompt;
+      const title = lang === 'hi' && t.titleHi ? t.titleHi : t.title;
+      const prompt = lang === 'hi' && t.promptHi ? t.promptHi : t.prompt;
       return `<button class="topic-btn" data-prompt="${esc(prompt)}"><span>${t.icon}</span><span>${title}</span></button>`;
     }).join('');
     
@@ -194,8 +197,8 @@ async function loadTopics() {
     });
 
     welcomeCards.innerHTML = data.topics.map(t => {
-      const title = currentLang === 'hi' && t.titleHi ? t.titleHi : t.title;
-      const prompt = currentLang === 'hi' && t.promptHi ? t.promptHi : t.prompt;
+      const title = lang === 'hi' && t.titleHi ? t.titleHi : t.title;
+      const prompt = lang === 'hi' && t.promptHi ? t.promptHi : t.prompt;
       return `<div class="topic-card" data-prompt="${esc(prompt)}" style="--card-c:${t.color}"><span class="card-emoji">${t.emoji}</span><div class="card-title">${title}</div><div class="card-sub">${prompt.split('.')[0]}</div></div>`;
     }).join('');
     
