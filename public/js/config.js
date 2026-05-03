@@ -26,8 +26,8 @@ export const langVoiceMap = {
     newChat:"New Chat", voiceAsst:"🔊 Voice Assistant", autoRead:"Auto-read answers",
     speed:"Speed", quickTopics:"⚡ Quick Topics", poweredBy:"Powered by Gemini AI",
     footerNote:"Non-partisan • For Everyone • All Languages", topTitle:"Election Process Education",
-    welcomeGuide:"Your <span class='grad-text'>Election Guide</span>",
-    welcomeSub:"Tap a topic below or ask me anything 👇",
+    welcomeGuide:"Understand Elections <span class='grad-text'>in Seconds</span>",
+    welcomeSub:"Voice + Image + AI powered assistant for voters",
     feat1:"Voice Input", feat2:"Read Aloud", feat3:"21 Languages", feat4:"Quiz Mode",
     placeholder:"Type or tap 🎤 to ask...", hint:"ElectIQ is educational only • Always verify with official sources",
     langLabel:"🌐 Language", quizBtn:"🧠 Quiz Mode", exportBtn:"📥 Export Chat", streakLabel:"day streak"

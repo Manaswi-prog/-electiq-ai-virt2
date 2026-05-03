@@ -34,5 +34,9 @@ export const onboardingModal = $('#onboardingModal');
 export const onboardNameInput = $('#onboardNameInput');
 export const onboardSubmitBtn = $('#onboardSubmitBtn');
 
+export const tryDemoBtn = $('#tryDemoBtn');
+export const eli5Btn = $('#eli5Btn');
+export const firstVoterBtn = $('#firstVoterBtn');
+
 export function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 export function esc(s) { return s.replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }

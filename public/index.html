@@ -40,7 +40,7 @@
           <div class="logo-icon">🗳️</div>
           <div class="logo-text">
             <h1>ElectIQ</h1>
-            <span class="logo-sub">AI Election Guide</span>
+            <span class="logo-sub">AI Election Assistant</span>
           </div>
         </div>
         <button id="sidebarClose" class="sidebar-close" aria-label="Close sidebar">✕</button>
@@ -179,17 +179,30 @@
             <p id="robotSpeech">Hi! I'm <strong>ElectIQ</strong> 👋<br/>Ask me anything about elections!<br/>Tap the 🎤 mic to talk to me!</p>
           </div>
 
-          <h2 class="welcome-title">Your <span class="grad-text">Election Guide</span></h2>
-          <p class="welcome-sub">Tap a topic below or ask me anything 👇</p>
+          <h2 class="welcome-title">Understand Elections <span class="grad-text">in Seconds</span> — Just Speak or Upload</h2>
+          <p class="welcome-sub">🎤 Voice + 📷 Image + 🤖 AI powered assistant for voters</p>
+
+          <!-- Demo + Killer Feature Buttons -->
+          <div class="hero-action-row" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:12px 0 18px;">
+            <button id="tryDemoBtn" class="hero-btn demo-btn" aria-label="Try a guided demo">
+              🚀 Try Demo
+            </button>
+            <button id="eli5Btn" class="hero-btn eli5-btn" aria-label="Explain elections simply">
+              👶 Explain Like I'm 10
+            </button>
+            <button id="firstVoterBtn" class="hero-btn first-btn" aria-label="First-time voter guide">
+              🗳️ First-Time Voter Guide
+            </button>
+          </div>
 
           <!-- Visual Topic Cards -->
           <div class="topic-cards" id="welcomeCards"></div>
 
           <div class="welcome-features">
             <div class="feat"><span>🎤</span><span>Voice Input</span></div>
-            <div class="feat"><span>🔊</span><span>Read Aloud</span></div>
+            <div class="feat"><span>📷</span><span>Image Scan</span></div>
             <div class="feat"><span>🌐</span><span>21 Languages</span></div>
-            <div class="feat"><span>🧠</span><span>Quiz Mode</span></div>
+            <div class="feat"><span>📄</span><span>Voter Plan PDF</span></div>
           </div>
         </div>
 
@@ -244,6 +257,15 @@
           </div>
           <p class="input-hint">ElectIQ is educational only • Always verify with official sources</p>
         </div>
+      </div>
+
+      <!-- Credibility / Powered By Strip -->
+      <div class="powered-strip" aria-label="Technologies used">
+        <span class="powered-label">Powered by</span>
+        <span class="powered-chip">⚡ Gemini 2.5 Flash</span>
+        <span class="powered-chip">🎤 Web Speech API</span>
+        <span class="powered-chip">🖼️ Multimodal AI</span>
+        <span class="powered-chip">☁️ Google Cloud Run</span>
       </div>
     </main>
   </div>

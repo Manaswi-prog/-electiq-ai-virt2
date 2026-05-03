@@ -14,28 +14,126 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-const SYSTEM_PROMPT = `You are "ElectIQ", an incredibly smart, highly conversational, and Gen-Z friendly AI assistant built for Election Process Education. You talk EXACTLY like ChatGPT—human-like, relatable, witty, and engaging, but strictly within the domain of elections and voting. No robotic "I am an AI assistant" vibes. Talk like a super smart, relatable friend who knows everything about elections.
+// ══════════════════════════════════════════════════════════════════
+// MASTER SYSTEM PROMPT v2.0 — ElectIQ Brain
+// ══════════════════════════════════════════════════════════════════
+const SYSTEM_PROMPT = `You are ElectIQ, a warm, intelligent, and strictly nonpartisan AI guide
+that helps every citizen understand elections — from first-time voters
+to civically engaged adults.
 
-## CORE PERSONALITY & TONE:
-1. **Human & Relatable:** Sound like a real person. Use modern slang, casual phrasing, and a bit of witty banter when appropriate (Gen-Z style).
-2. **Personalized:** Always use the user's name if provided. If they are new, welcome them warmly. Treat them like a friend.
-3. **No Robotic Cliches:** Never say "As an AI..." or "How can I assist you today?". Instead say things like "Hey [Name], what's on your mind?" or "Let's dive into it!"
-4. **Adaptive:** If they ask a simple question, give a punchy, easy-to-understand answer. If they want deep details, break it down like you're explaining it to a friend over coffee.
-5. **Language Matching:** ALWAYS respond in the SAME LANGUAGE the user writes in, or the language specified in [LANG:xx]. Match the vibe and slang in that language too!
+Your role: Teacher + Guide + Trusted Friend.
+Your standard: Make elections understandable in 60 seconds or less.
 
-## YOUR DOMAIN EXPERTISE:
-You know everything about:
-🗳️ Voter Registration, 📅 Election Timelines, 🏛️ Types of Elections, ✉️ Voting Methods, ⚖️ Electoral Systems, 📜 Ballots, 🔒 Election Security, 📊 Results, and 🌍 Global Elections (India, USA, UK, EU, etc.).
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧠  INTELLIGENCE BEHAVIOR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Before every response, silently ask yourself:
+  1. What is the user ACTUALLY asking? (Definition? Process? Clarification?)
+  2. What is their confidence level? (Confused / Curious / Task-ready)
+  3. What is the SIMPLEST path to understanding this topic?
 
-## FORMATTING RULES:
-1. Use emojis naturally, not excessively.
-2. Keep paragraphs short and scannable.
-3. Use bullet points or numbered lists if explaining a process, but keep it conversational.
+Then adapt:
+  • Definition questions  → clear 1-sentence answer + brief explanation
+  • Process questions     → numbered steps, nothing skipped
+  • Confused users        → use an analogy before any technical detail
+  • Expert-sounding users → be efficient, skip basics, add depth
 
-## STRICT SAFETY RULES:
-- BE NON-PARTISAN. Never endorse a political party, candidate, or ideology.
-- Don't roast their political beliefs. Keep it fun and educational.
-- If they ask off-topic questions, creatively steer it back to elections with a witty remark.`;
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📚  RESPONSE STRUCTURE (ALWAYS follow this order)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Direct Answer        — 1–2 lines, plain language, no jargon
+2. Simple Explanation   — short paragraph, beginner-friendly
+3. Steps / Breakdown    — numbered list (only if the topic has steps)
+4. Analogy or Example   — use a real-life comparison when helpful
+5. Key takeaway         — one line beginning with "👉 Key takeaway:"
+6. Follow-up            — one specific, topic-relevant follow-up question
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯  RESPONSE QUALITY RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Max 250 words per response (brevity is a feature, not a bug)
+- Bullets and numbered lists > long paragraphs
+- Bold only key terms on their FIRST appearance
+- Never use acronyms without spelling them out first
+- Never assume the user knows anything about elections
+- Prefer one clear idea over three vague ones
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔀  RESPONSE MODES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The system will pass the current mode as: [MODE: ___]
+
+NORMAL  → Balanced explanation. Full structure. ~150–200 words.
+SIMPLE  → Explain like the user is 12 years old. No jargon whatsoever.
+          Use a single analogy. Max 100 words. Very short sentences.
+GUIDE   → Structured learning walkthrough. Start with "Here's what we'll
+          cover:" then teach section by section with a clear recap.
+QUIZ    → Ask the user one question about the topic. Evaluate their answer.
+          Give encouraging, specific feedback regardless of correctness.
+
+If no mode is specified, use NORMAL.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📖  KNOWLEDGE DOMAINS (your 10 core areas)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Voter Registration      — eligibility, how to register, deadlines,
+                             updating records, checking status
+2. Election Timeline       — primary vs. general, presidential cycles,
+                             midterms, key campaign dates
+3. Election Day Process    — polling locations, ID rules, voting machines,
+                             provisional ballots, what to do if problems arise
+4. Alternative Voting      — mail-in ballots, absentee voting, early voting,
+                             drop boxes, ballot tracking
+5. Reading Your Ballot     — contest types, ballot measures, propositions,
+                             write-ins, how to correct mistakes
+6. Vote Counting           — chain of custody, when counting starts,
+                             mail ballot processing, poll watchers
+7. Certification Process   — why results take time, canvassing, county →
+                             state → federal certification, recounts
+8. Electoral College       — how electors work, winner-take-all vs.
+                             proportional, faithless electors, January 6 role
+9. Types of Elections      — presidential, midterm, local, special,
+                             primary types (open/closed/jungle), runoffs
+10. Election Security      — ballot security, audits, observer roles,
+                             paper trails, post-election verification
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🌐  LANGUAGE RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ALWAYS respond in the SAME LANGUAGE the user writes in, or the
+language specified in [LANG:xx]. Match the tone in that language too.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚨  ABSOLUTE RULES (never violate, ever)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. NONPARTISAN LOCK
+   Never express opinions on candidates, parties, or ballot measures.
+   If pressed: "I explain how elections work — not who to vote for."
+
+2. NO INVENTED FACTS
+   If unsure of a deadline or state-specific rule, say:
+   "Rules vary by state — check vote.gov or your county clerk to confirm."
+   Never fabricate dates, laws, or deadlines.
+
+3. NO LEGAL ADVICE
+   Redirect legal questions: "For legal election questions, contact your
+   state's Secretary of State office or an election law attorney."
+
+4. STAY ON TOPIC
+   If the user goes off-topic politically, redirect:
+   "That's beyond what I cover — but I can explain how [related process]
+   works if that helps!"
+
+5. STATE VARIATION RULE
+   Always flag when rules differ by state. Never imply federal uniformity
+   unless the rule is genuinely federal law.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨  TONE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Warm, encouraging, never condescending.
+Sound like a smart friend who happens to know a lot about elections.
+Celebrate curiosity: "Great question — this one confuses a lot of people."`;
 
 let genAI = null;
 let model = null;
@@ -57,10 +155,82 @@ function initializeAI() {
   }
 }
 
-// ── Chat endpoint (Streaming) ────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// INTENT ROUTER — Classify user input into a mode before Gemini
+// ══════════════════════════════════════════════════════════════════
+function classifyIntent(message, hasImage, explicitMode) {
+  // Explicit mode from frontend takes priority
+  if (explicitMode && ['simple', 'guide', 'image'].includes(explicitMode)) {
+    return explicitMode;
+  }
+  // Image mode if an image is attached
+  if (hasImage) return 'image';
+
+  const lower = (message || '').toLowerCase();
+
+  // Guide mode keywords
+  const guideKeywords = ['step by step', 'step-by-step', 'how to', 'how do i', 'guide', 'walkthrough', 'process', 'checklist', 'explain the steps', 'first-time voter'];
+  if (guideKeywords.some(k => lower.includes(k))) return 'guide';
+
+  // Simple mode keywords
+  const simpleKeywords = ['explain like', 'eli5', 'simple', 'simply', 'easy', 'beginner', 'like i\'m 10', 'like a kid', 'like a child', 'basic', 'dumb it down', 'asan', 'aasan', 'saral'];
+  if (simpleKeywords.some(k => lower.includes(k))) return 'simple';
+
+  return 'normal';
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PROMPT BUILDER — Lean message with mode tag (v2.0 system prompt
+// handles all mode behavior internally)
+// ══════════════════════════════════════════════════════════════════
+function buildModePrompt(query, mode, userName, language) {
+  const parts = [];
+
+  // Context tags
+  if (userName) parts.push(`[User: ${userName}]`);
+  if (language !== 'en') parts.push(`[LANG:${language}]`);
+  parts.push(`[MODE: ${mode.toUpperCase()}]`);
+
+  // Image mode gets a framing hint since user may not specify what to analyze
+  if (mode === 'image') {
+    parts.push(query || 'Analyze this election-related image and explain what it shows.');
+  } else {
+    parts.push(query);
+  }
+
+  return parts.join(' ');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// RESPONSE CACHE — Avoid re-calling Gemini for repeated queries
+// ══════════════════════════════════════════════════════════════════
+const responseCache = new Map();
+const CACHE_MAX = 100;
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+function getCacheKey(msg, mode, lang) {
+  return `${mode}:${lang}:${(msg || '').trim().toLowerCase().slice(0, 200)}`;
+}
+
+function getCachedResponse(key) {
+  const entry = responseCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > CACHE_TTL) { responseCache.delete(key); return null; }
+  return entry.text;
+}
+
+function setCachedResponse(key, text) {
+  if (responseCache.size >= CACHE_MAX) {
+    const oldest = responseCache.keys().next().value;
+    responseCache.delete(oldest);
+  }
+  responseCache.set(key, { text, ts: Date.now() });
+}
+
+// ── Chat endpoint (Streaming + Intent Router) ───────────────────
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message, history = [], language = 'en', userName = '', image, mimeType } = req.body;
+    const { message, history = [], language = 'en', userName = '', image, mimeType, mode: explicitMode } = req.body;
 
     if ((!message || message.trim().length === 0) && !image) {
       return res.status(400).json({ error: 'Message or image is required' });
@@ -71,10 +241,26 @@ app.post('/api/chat', async (req, res) => {
       return res.end(getFallbackResponse(language));
     }
 
-    const nameContext = userName ? `[SYSTEM: The user's name is ${userName}. Talk directly to them.] ` : '';
-    const langTag = language !== 'en' ? `[LANG:${language}] ` : '';
-    
-    const chatHistory = history.slice(-12).map(msg => {
+    // ── Step 1: Intent Router ──
+    const mode = classifyIntent(message, !!image, explicitMode);
+    console.log(`[ElectIQ] Mode: ${mode} | Lang: ${language} | Query: ${(message || '').slice(0, 80)}`);
+
+    // ── Step 2: Check Cache (skip for image mode) ──
+    if (mode !== 'image') {
+      const cacheKey = getCacheKey(message, mode, language);
+      const cached = getCachedResponse(cacheKey);
+      if (cached) {
+        console.log(`[ElectIQ] Cache HIT`);
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        return res.end(cached);
+      }
+    }
+
+    // ── Step 3: Build Mode-Specific Prompt ──
+    const structuredPrompt = buildModePrompt(message, mode, userName, language);
+
+    // ── Step 4: Build Gemini Chat Config ──
+    const chatHistory = history.slice(-8).map(msg => {
       let parts = [];
       if (msg.image && msg.mimeType) {
         const b64 = msg.image.includes(',') ? msg.image.split(',')[1] : msg.image;
@@ -91,12 +277,12 @@ app.post('/api/chat', async (req, res) => {
 
     const chatConfig = {
       history: chatHistory,
-      systemInstruction: { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
+      systemInstruction: { role: 'user', parts: [{ text: SYSTEM_PROMPT + `\n\n[ACTIVE MODE: ${mode.toUpperCase()}]` }] },
       generationConfig: {
-        temperature: 0.8,
+        temperature: mode === 'simple' ? 0.6 : mode === 'guide' ? 0.5 : 0.8,
         topP: 0.92,
         topK: 40,
-        maxOutputTokens: 2048,
+        maxOutputTokens: mode === 'guide' ? 3000 : 2048,
       }
     };
 
@@ -105,17 +291,20 @@ app.post('/api/chat', async (req, res) => {
       try { models.push(genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' })); } catch (_) {}
     }
 
+    // ── Step 5: Stream from Gemini ──
     let streamSuccess = false;
+    let fullResponse = '';
+
     for (const m of models) {
       try {
         const chat = m.startChat(chatConfig);
         
-        let msgPayload = nameContext + langTag + (message || 'What is in this image regarding elections?');
+        let msgPayload = structuredPrompt;
         if (image) {
           const b64 = image.includes(',') ? image.split(',')[1] : image;
           msgPayload = [
             { inlineData: { data: b64, mimeType: mimeType } },
-            { text: msgPayload }
+            { text: structuredPrompt }
           ];
         }
 
@@ -127,14 +316,22 @@ app.post('/api/chat', async (req, res) => {
             res.setHeader('Content-Type', 'text/plain; charset=utf-8');
             res.setHeader('Transfer-Encoding', 'chunked');
           }
-          res.write(chunk.text());
+          const text = chunk.text();
+          fullResponse += text;
+          res.write(text);
         }
         res.end();
         streamSuccess = true;
+
+        // ── Step 6: Cache the response (skip images) ──
+        if (mode !== 'image' && fullResponse.length > 50) {
+          const cacheKey = getCacheKey(message, mode, language);
+          setCachedResponse(cacheKey, fullResponse);
+        }
+
         break;
       } catch (err) {
         console.error(`Model error: ${err.message?.slice(0, 150)}`);
-        // If headers were already sent, we cannot fallback cleanly. End the response.
         if (res.headersSent) {
           res.end('\n\n⚠️ Connection to AI interrupted. Please try again.');
           return;
@@ -146,8 +343,8 @@ app.post('/api/chat', async (req, res) => {
     if (!streamSuccess && !res.headersSent) {
       res.setHeader('Content-Type', 'text/plain; charset=utf-8');
       res.end(language === 'hi' 
-        ? 'यहाँ **मतदान** और चुनाव के बारे में कुछ ज़रूरी बातें हैं:\n\n### 🗳️ आपके वोट की ताकत\nवोट देना मतलब अपने नेता खुद चुनना! यह लोकतंत्र की नींव है।\n\n### 📋 पंजीकरण ज़रूरी है\nवोट देने से पहले आपका नाम वोटर लिस्ट में होना चाहिए।\n\n### 🔒 पूरी गोपनीयता\nआपका वोट 100% गुप्त है! कोई भी नहीं जान सकता कि आपने किसे वोट दिया।\n\nलोकतंत्र तभी मज़बूत होता है जब हर नागरिक वोट दे। आपका वोट, आपकी आवाज़! ✊'
-        : 'Here are some **quick facts about voting** and global election systems:\n\n### 🗳️ The Power of Your Vote\nVoting gives citizens the direct power to choose their leaders and shape the future of their country.\n\n### 📋 Registration is Required\nBefore you can vote, you must be officially registered.\n\n### 🔒 Complete Secrecy\nYour vote is 100% confidential. The system is designed so that absolutely no one can find out who you voted for.\n\nDemocracy works best when everyone participates. Make your voice heard! ✊'
+        ? 'यहाँ **मतदान** और चुनाव के बारे में कुछ ज़रूरी बातें हैं:\n\n### 🗳️ आपके वोट की ताकत\nवोट देना मतलब अपने नेता खुद चुनना! यह लोकतंत्र की नींव है।\n\n### 📋 पंजीकरण ज़रूरी है\nवोट देने से पहले आपका नाम वोटर लिस्ट में होना चाहिए।\n\n### 🔒 पूरी गोपनीयता\nआपका वोट 100% गुप्त है!\n\n**🎯 Key takeaway:** लोकतंत्र तभी मज़बूत होता है जब हर नागरिक वोट दे। ✊'
+        : 'Here are some **quick facts about voting**:\n\n### 🗳️ The Power of Your Vote\nVoting gives citizens the direct power to choose their leaders.\n\n### 📋 Registration is Required\nBefore you can vote, you must be officially registered.\n\n### 🔒 Complete Secrecy\nYour vote is 100% confidential.\n\n**🎯 Key takeaway:** Democracy works best when everyone participates. Make your voice heard! ✊\n\nWant a simpler explanation or step-by-step guide?'
       );
     }
   } catch (err) {

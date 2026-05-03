@@ -1,7 +1,7 @@
-import { $, sidebar, sidebarToggle, sidebarClose, newChatBtn, topicsList, welcomeCards, welcomeScreen, messagesBox, msgInput, sendBtn, themeBtn, themeIcon, aiStatus, bgCanvas, langSelect, voiceBtn, stopSpeakBtn, robotSpeech, onboardingModal, onboardNameInput, onboardSubmitBtn, imageBtn, imageInput, imagePreviewContainer, imagePreview, removeImageBtn, generatePdfBtn } from './dom.js';
+import { $, sidebar, sidebarToggle, sidebarClose, newChatBtn, topicsList, welcomeCards, welcomeScreen, messagesBox, msgInput, sendBtn, themeBtn, themeIcon, aiStatus, bgCanvas, langSelect, voiceBtn, stopSpeakBtn, robotSpeech, onboardingModal, onboardNameInput, onboardSubmitBtn, imageBtn, imageInput, imagePreviewContainer, imagePreview, removeImageBtn, generatePdfBtn, tryDemoBtn, eli5Btn, firstVoterBtn } from './dom.js';
 import { currentLang, setCurrentLang, uiTranslations, robotGreetings, langVoiceMap, userName, setUserName } from './config.js';
 import { initSpeechRecognition, stopSpeaking, synth, setRobotState, recognition, isListening } from './speech.js';
-import { sendMessage, clearChat, chatHistory, setImage, clearImage } from './chat.js';
+import { sendMessage, clearChat, chatHistory, setImage, clearImage, setUserMode } from './chat.js';
 import { initQuiz } from './quiz.js';
 import { esc } from './dom.js';
 
@@ -377,3 +377,53 @@ onboardNameInput.addEventListener('keydown', (e) => {
 });
 
 initOnboarding();
+
+// ── Guided Demo Flow ──────────────────────────────────────────
+function showDemoOverlay(stepNum, label) {
+  let overlay = document.getElementById('demoOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'demoOverlay';
+    overlay.className = 'demo-overlay';
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = `<div class="demo-step-badge">Step ${stepNum}/3</div><div class="demo-step-label">${label}</div>`;
+  overlay.classList.add('visible');
+  setTimeout(() => overlay.classList.remove('visible'), 3500);
+}
+
+if (tryDemoBtn) {
+  tryDemoBtn.addEventListener('click', async () => {
+    // Step 1 — Voice/Text question (Guide mode)
+    showDemoOverlay(1, '🎤 Asking a question via text...');
+    await new Promise(r => setTimeout(r, 800));
+    setUserMode('guide');
+    sendMessage('How do I register to vote for the first time? Explain step by step in a fun way.');
+
+    // Step 2 — After response, prompt image upload
+    setTimeout(() => {
+      showDemoOverlay(2, '📷 Try uploading an election image next!');
+    }, 8000);
+
+    // Step 3 — Final impact
+    setTimeout(() => {
+      showDemoOverlay(3, '✅ You just used Voice + Image + AI! 🎉');
+    }, 14000);
+  });
+}
+
+// ── ELI5 Mode (Simple) ────────────────────────────────────────
+if (eli5Btn) {
+  eli5Btn.addEventListener('click', () => {
+    setUserMode('simple');
+    sendMessage('Explain the entire election process like I\'m a 10-year-old kid. Use super simple words, fun analogies, and emojis. Make it feel like a bedtime story! 🧒📖');
+  });
+}
+
+// ── First-Time Voter Guide (Guide mode) ──────────────────────
+if (firstVoterBtn) {
+  firstVoterBtn.addEventListener('click', () => {
+    setUserMode('guide');
+    sendMessage('I\'m a first-time voter and I have NO idea what to do. Give me a personalized step-by-step guide: from checking if I\'m registered, to what happens at the polling booth, to casting my vote. Make it super easy, like a checklist I can follow. 🗳️✅');
+  });
+}

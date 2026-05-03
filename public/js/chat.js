@@ -8,6 +8,10 @@ export let isLoading = false;
 export let currentImageBase64 = null;
 export let currentImageMimeType = null;
 
+// Smart context memory: user's preferred response mode
+export let userMode = 'normal'; // 'normal' | 'simple' | 'guide'
+export function setUserMode(mode) { userMode = mode; }
+
 export function clearChat() {
   chatHistory = [];
   clearImage();
@@ -50,8 +54,12 @@ export async function sendMessage(text) {
     message: msg,
     history: chatHistory.slice(0, -1),
     language: currentLang,
-    userName: userName
+    userName: userName,
+    mode: userMode
   };
+
+  // Reset mode after capturing (one-shot override)
+  userMode = 'normal';
 
   if (currentImageBase64) {
     reqBody.image = currentImageBase64;
