@@ -5,14 +5,28 @@ import { escHtml } from './dom.js';
 
 export let chatHistory = [];
 export let isLoading = false;
+export let currentImageBase64 = null;
+export let currentImageMimeType = null;
 
 export function clearChat() {
   chatHistory = [];
+  clearImage();
+}
+
+export function setImage(base64, mimeType) {
+  currentImageBase64 = base64;
+  currentImageMimeType = mimeType;
+}
+
+export function clearImage() {
+  currentImageBase64 = null;
+  currentImageMimeType = null;
 }
 
 export async function sendMessage(text) {
   const msg = text || msgInput.value.trim();
-  if (!msg || isLoading) return;
+  if (!msg && !currentImageBase64) return;
+  if (isLoading) return;
 
   msgInput.value = '';
   msgInput.style.height = 'auto';
@@ -23,8 +37,34 @@ export async function sendMessage(text) {
   welcomeScreen.style.display = 'none';
   messagesBox.style.display = 'flex';
 
-  chatHistory.push({ role: 'user', content: msg });
-  appendMessage('user', msg);
+  const userPayload = { role: 'user', content: msg };
+  if (currentImageBase64) {
+    userPayload.image = currentImageBase64;
+    userPayload.mimeType = currentImageMimeType;
+  }
+  
+  chatHistory.push(userPayload);
+  appendMessage('user', msg, currentImageBase64);
+
+  const reqBody = {
+    message: msg,
+    history: chatHistory.slice(0, -1),
+    language: currentLang,
+    userName: userName
+  };
+
+  if (currentImageBase64) {
+    reqBody.image = currentImageBase64;
+    reqBody.mimeType = currentImageMimeType;
+  }
+
+  // Clear image immediately after sending
+  clearImage();
+  import('./dom.js').then(dom => {
+    dom.imagePreviewContainer.classList.add('hidden');
+    dom.imagePreview.src = '';
+    dom.imageInput.value = '';
+  });
 
   const assistantDiv = createAssistantMessageDiv();
   messagesBox.appendChild(assistantDiv);
@@ -39,12 +79,7 @@ export async function sendMessage(text) {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: msg,
-        history: chatHistory.slice(0, -1),
-        language: currentLang,
-        userName: userName
-      })
+      body: JSON.stringify(reqBody)
     });
 
     if (!res.ok) throw new Error('Network response was not ok');
@@ -81,16 +116,21 @@ export async function sendMessage(text) {
   scrollToBottom();
 }
 
-export function appendMessage(role, content) {
+export function appendMessage(role, content, imageBase64 = null) {
   const div = document.createElement('div');
   div.className = `message ${role}`;
   const avatar = role === 'assistant' ? '🗳️' : '👤';
   const rendered = role === 'assistant' ? marked.parse(content) : escHtml(content);
 
+  let imageHtml = '';
+  if (imageBase64) {
+    imageHtml = `<img src="${imageBase64}" style="max-width:100%; border-radius:8px; margin-bottom:8px; border:1px solid var(--a1);">`;
+  }
+
   div.innerHTML = `
     <div class="msg-avatar">${avatar}</div>
     <div>
-      <div class="msg-bubble">${rendered}</div>
+      <div class="msg-bubble">${imageHtml}${rendered}</div>
     </div>`;
 
   messagesBox.appendChild(div);

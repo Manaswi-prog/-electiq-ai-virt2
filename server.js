@@ -59,10 +59,10 @@ function initializeAI() {
 // ── Chat endpoint (Streaming) ────────────────────────────────────
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message, history = [], language = 'en', userName = '' } = req.body;
+    const { message, history = [], language = 'en', userName = '', image, mimeType } = req.body;
 
-    if (!message || typeof message !== 'string' || message.trim().length === 0) {
-      return res.status(400).json({ error: 'Message is required' });
+    if ((!message || message.trim().length === 0) && !image) {
+      return res.status(400).json({ error: 'Message or image is required' });
     }
 
     if (!model) {
@@ -73,16 +73,25 @@ app.post('/api/chat', async (req, res) => {
     const nameContext = userName ? `[SYSTEM: The user's name is ${userName}. Talk directly to them.] ` : '';
     const langTag = language !== 'en' ? `[LANG:${language}] ` : '';
     
-    const chatHistory = history.slice(-12).map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.content }]
-    }));
+    const chatHistory = history.slice(-12).map(msg => {
+      let parts = [];
+      if (msg.image && msg.mimeType) {
+        parts.push({ inlineData: { data: msg.image.split(',')[1], mimeType: msg.mimeType } });
+      }
+      if (msg.content) {
+        parts.push({ text: msg.content });
+      }
+      return {
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: parts
+      };
+    });
 
     const chatConfig = {
       history: chatHistory,
       systemInstruction: { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
       generationConfig: {
-        temperature: 0.8, // Slightly higher for more conversational variety
+        temperature: 0.8,
         topP: 0.92,
         topK: 40,
         maxOutputTokens: 2048,
@@ -101,7 +110,16 @@ app.post('/api/chat', async (req, res) => {
     for (const m of models) {
       try {
         const chat = m.startChat(chatConfig);
-        const resultStream = await chat.sendMessageStream(nameContext + langTag + message);
+        
+        let msgPayload = nameContext + langTag + (message || 'What is in this image regarding elections?');
+        if (image) {
+          msgPayload = [
+            { inlineData: { data: image.split(',')[1], mimeType: mimeType } },
+            { text: msgPayload }
+          ];
+        }
+
+        const resultStream = await chat.sendMessageStream(msgPayload);
         
         for await (const chunk of resultStream) {
           if (!res.headersSent) {

@@ -23,6 +23,12 @@ export const robot = $('#robot');
 export const robotSpeech = $('#robotSpeech');
 export const speechBubble = $('#speechBubble');
 
+export const imageBtn = $('#imageBtn');
+export const imageInput = $('#imageInput');
+export const imagePreviewContainer = $('#imagePreviewContainer');
+export const imagePreview = $('#imagePreview');
+export const removeImageBtn = $('#removeImageBtn');
+
 export const onboardingModal = $('#onboardingModal');
 export const onboardNameInput = $('#onboardNameInput');
 export const onboardSubmitBtn = $('#onboardSubmitBtn');

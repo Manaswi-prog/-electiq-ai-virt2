@@ -1,11 +1,47 @@
-import { $, sidebar, sidebarToggle, sidebarClose, newChatBtn, topicsList, welcomeCards, welcomeScreen, messagesBox, msgInput, sendBtn, themeBtn, themeIcon, aiStatus, bgCanvas, langSelect, voiceBtn, stopSpeakBtn, robotSpeech, onboardingModal, onboardNameInput, onboardSubmitBtn } from './dom.js';
+import { $, sidebar, sidebarToggle, sidebarClose, newChatBtn, topicsList, welcomeCards, welcomeScreen, messagesBox, msgInput, sendBtn, themeBtn, themeIcon, aiStatus, bgCanvas, langSelect, voiceBtn, stopSpeakBtn, robotSpeech, onboardingModal, onboardNameInput, onboardSubmitBtn, imageBtn, imageInput, imagePreviewContainer, imagePreview, removeImageBtn } from './dom.js';
 import { currentLang, setCurrentLang, uiTranslations, robotGreetings, langVoiceMap, userName, setUserName } from './config.js';
 import { initSpeechRecognition, stopSpeaking, synth, setRobotState, recognition, isListening } from './speech.js';
-import { sendMessage, clearChat, chatHistory } from './chat.js';
+import { sendMessage, clearChat, chatHistory, setImage, clearImage } from './chat.js';
 import { initQuiz } from './quiz.js';
 import { esc } from './dom.js';
 
-function updateUILocale() {
+// ... 
+function checkSendBtnState() {
+  const hasText = msgInput.value.trim().length > 0;
+  const hasImage = !imagePreviewContainer.classList.contains('hidden');
+  sendBtn.disabled = !(hasText || hasImage);
+}
+
+msgInput.addEventListener('input', () => {
+  checkSendBtnState();
+  autoResize();
+});
+
+imageBtn.addEventListener('click', () => imageInput.click());
+
+imageInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const base64 = event.target.result;
+    const mimeType = file.type;
+    setImage(base64, mimeType);
+    imagePreview.src = base64;
+    imagePreviewContainer.classList.remove('hidden');
+    checkSendBtnState();
+  };
+  reader.readAsDataURL(file);
+});
+
+removeImageBtn.addEventListener('click', () => {
+  clearImage();
+  imagePreviewContainer.classList.add('hidden');
+  imagePreview.src = '';
+  imageInput.value = '';
+  checkSendBtnState();
+});
   const t = uiTranslations[currentLang] || uiTranslations.en;
   
   $('#newChatBtn').innerHTML = `<span>＋</span> ${t.newChat}`;
